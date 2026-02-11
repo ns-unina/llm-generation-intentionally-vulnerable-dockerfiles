@@ -10,6 +10,6 @@ Sixteen weere used
 
 
 
-### Preliminarty analysis
-The preliminary analysis involved 15 vulnerable Linux software packages, and 15 web applications with known vulnerabilities. 
+### In-depth analysis
+The in-depth analysis  15 vulnerable Linux software packages, and 15 web applications with known vulnerabilities. 
 
