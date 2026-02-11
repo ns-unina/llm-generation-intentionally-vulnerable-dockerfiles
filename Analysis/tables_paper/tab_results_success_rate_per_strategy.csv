@@ -1,0 +1,5 @@
+Scenario,Build %,Run %,Exploit %
+Services – Package,69.2,46.2,7.7
+Services – Source,61.5,46.2,7.7
+Webapps – Compose,57.1,57.1,28.6
+Webapps – Bundle,20.0,20.0,0.0

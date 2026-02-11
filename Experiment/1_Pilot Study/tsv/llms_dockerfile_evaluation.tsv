@@ -1,0 +1,1203 @@
+Vulnerability	Query	ChatGPT	Gemini	Bing	Evaluation about ChatGPT	Evaluation about Gemini	Evaluation about Bing	References
+Formula Injection (https://www.exploit-db.com/exploits/47225) CVE-2019-14749	Generate a dockerfile of osTicket-v1.12	"# Use an official PHP image as base
+FROM php:7.4-apache
+
+# Install required PHP extensions
+RUN docker-php-ext-install mysqli && docker-php-ext-install gd && docker-php-ext-install gettext && docker-php-ext-install intl
+
+# Set recommended PHP.ini settings
+RUN echo 'date.timezone = ""UTC""' > /usr/local/etc/php/php.ini
+RUN echo 'memory_limit = 256M' >> /usr/local/etc/php/php.ini
+RUN echo 'upload_max_filesize = 100M' >> /usr/local/etc/php/php.ini
+RUN echo 'post_max_size = 100M' >> /usr/local/etc/php/php.ini
+RUN echo 'max_execution_time = 600' >> /usr/local/etc/php/php.ini
+
+# Download and install osTicket v1.12
+WORKDIR /var/www/html
+RUN apt-get update && apt-get install -y wget
+RUN wget https://github.com/osTicket/osTicket/releases/download/v1.12/osTicket-v1.12.zip
+RUN unzip osTicket-v1.12.zip
+RUN rm osTicket-v1.12.zip
+RUN chown -R www-data:www-data upload include
+RUN a2enmod rewrite
+
+# Expose ports
+EXPOSE 80
+
+# Start Apache
+CMD [""apache2-foreground""]"	"FROM php:7.4-apache
+# Install osTicket dependencies
+RUN apt-get update && apt-get install -y  libjpeg-dev libpng-dev libpq-dev libzip-dev mysql-client sqlite3
+ 
+# Install osTicket
+RUN curl -sL https://github.com/osTicket/osTicket/archive/v1.12.tar.gz | tar -xzC /var/www/html
+ 
+# Configure osTicket
+RUN chown -R www-data:www-data /var/www/html/osTicket
+RUN chmod -R 755 /var/www/html/osTicket/upload
+ 
+# Copy osTicket configuration file
+COPY ./osticket.conf /etc/apache2/sites-available/osticket.conf
+ 
+# Enable osTicket site
+RUN a2ensite osticket
+ 
+# Restart Apache
+RUN service apache2 restart"	"# Use an official PHP runtime as a parent image
+FROM php:7.2-apache
+
+# Set the working directory in the container
+WORKDIR /var/www/html
+
+# Install any needed packages specified in requirements.txt
+RUN apt-get update && \
+    apt-get install -y libpng-dev libjpeg-dev libmcrypt-dev mysql-client zlib1g-dev && \
+    docker-php-ext-install pdo_mysql gd zip
+
+# Get osTicket
+RUN curl -L -o osTicket.zip https://github.com/osTicket/osTicket/releases/download/v1.12/osTicket-v1.12.zip && \
+    unzip osTicket.zip -d osTicket && \
+    rm osTicket.zip
+
+# Copy osTicket into working directory
+RUN cp -R osTicket/upload/* /var/www/html && \
+    cp osTicket/scripts /var/www/html && \
+    chown -R www-data:www-data /var/www/html
+
+# Expose port 80
+EXPOSE 80
+
+# Run Apache in Foreground
+CMD [""apache2-foreground""]"	"BUILDING ERROR
+-  zlib1g-dev/libpng/libicu-dev absent in php building php modules
+-  unzip absent at line 21 to unzip osTicket file
+ can't chown include folder at line 22, it doesn't exist
+mysql not installed
+WORKING ERROR
+- install package git to use manage.php automate setup
+- Document root set to /var/www/htdocs (the github guide install osticket in that directory)
+- Set ""Options +Indexes"" in ""docker-php.conf""	
+
+CONCLUSION
+After all the correction the exploit working, using as a payload a simple cvs formula ""=1+2"" which return successfully 3"	"BUILDING ERROR
+- OsTicket.conf doesn't exist
+- Package 'mysql-client' has no installation candidate, it's called ""default-mysql-client"" now
+- Extracted file name is ""osTicket-1.12"", not ""osTicket"", raising error for chown and chmod, and there's no subfolder named upload
+
+WORKING ERROR
+- install package git to use manage.php automate setup
+- Document root set to /var/www/htdocs (the github guide install osticket in that directory)
+- Set ""Options +Indexes"" in ""docker-php.conf""	
+
+CONCLUSION
+After all the correction the exploit working, using as a payload a simple cvs formula ""=1+2"" which return successfully 3"	"BUILDING ERROR
+- Package 'mysql-client' has no installation candidate, it's called ""default-mysql-client"" now
+Package 'unzip' absent, needed for unzip function
+-  zlib1g-dev/libpng/libicu-dev absent in php building php modules
+There's no subfolder named ""upload"", need to copy full path
+Wrong php extensions, now installing same as gpt
+
+WORKING ERROR
+- install package git to use manage.php automate setup
+- Document root set to /var/www/htdocs (the github guide install osticket in that directory)
+- Set ""Options +Indexes"" in ""docker-php.conf""	
+
+CONCLUSION
+After all the correction the exploit working, using as a payload a simple cvs formula ""=1+2"" which return successfully 3"	"https://askubuntu.com/questions/508934/how-to-install-libpng-and-zlib
+https://forum.osticket.com/d/98778-osttiket-clean-installation-problem
+https://forum.osticket.com/d/101401-anyone-want-to-help-me-figure-out-how-to-set-up-osticket
+https://docs.osticket.com/en/latest/Getting Started/Installation.html#using-installation-script
+https://www.liquidweb.com/kb/apache-error-no-matching-directoryindex-index-html-found-solved/
+https://stackoverflow.com/questions/48207386/cannot-serve-directory-var-www-html-no-matching-directoryindex
+https://stackoverflow.com/questions/59783755/permission-denied-cant-open-directory-for-index-var-www-html
+https://stackoverflow.com/questions/5301776/directory-index-forbidden-by-options-directive
+https://dev.mysql.com/doc/mysql-getting-started/en/
+https://askubuntu.com/questions/40011/how-to-let-dpkg-i-install-dependencies-for-me
+https://dev.mysql.com/doc/refman/8.0/en/
+https://forum.osticket.com/d/94404-resolved-db-error-1054-help
+https://forum.osticket.com/d/77702-resolved-unable-to-connect-to-mysql-server-no-such-file-or-directory
+https://stackoverflow.com/questions/8348506/grant-remote-access-of-mysql-database-from-any-ip-address
+https://owasp.org/www-community/attacks/CSV_Injectionhttps://stackoverflow.com/questions/34954455/mysql-daemon-lock-issue"
+File Upload Remote Code Execution (RCE) (Authenticated) (https://www.exploit-db.com/exploits/51639) CVE-2023-39147	Generate a dockerfile of Uvdesk v1.1.3	"# Use an official PHP image as base
+FROM php:7.4-apache
+
+# Install required PHP extensions
+RUN docker-php-ext-install pdo_mysql
+
+# Set recommended PHP.ini settings
+RUN echo 'date.timezone = ""UTC""' > /usr/local/etc/php/php.ini
+RUN echo 'memory_limit = 512M' >> /usr/local/etc/php/php.ini
+RUN echo 'upload_max_filesize = 100M' >> /usr/local/etc/php/php.ini
+RUN echo 'post_max_size = 100M' >> /usr/local/etc/php/php.ini
+RUN echo 'max_execution_time = 600' >> /usr/local/etc/php/php.ini
+
+# Enable Apache modules
+RUN a2enmod rewrite
+
+# Install required dependencies
+RUN apt-get update && apt-get install -y unzip
+
+# Download and install Uvdesk v1.1.3
+WORKDIR /var/www/html
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && composer create-project uvdesk/community-skeleton helpdesk-project v1.1.3 && chown -R www-data:www-data /var/www/html/helpdesk-project
+# Expose ports
+EXPOSE 80
+
+# Start Apache
+CMD [""apache2-foreground""]"	"FROM php:7.4-apache
+# Install Uvdesk dependencies
+RUN apt-get update && apt-get install -y libapache2-mod-php libcurl4-openssl-dev libgd-dev libjpeg-dev libpng-dev libzip-dev mysql-client sqlite3
+
+# Install Uvdesk
+RUN curl -sL https://github.com/uvdesk/uvdesk/archive/v1.1.3.tar.gz | tar -xzC /var/www/html
+
+# Configure Uvdesk
+RUN chown -R www-data:www-data /var/www/html/uvdesk
+RUN chmod -R 755 /var/www/html/uvdesk/upload
+
+# Copy Uvdesk configuration file
+COPY ./uvdesk.conf /etc/apache2/sites-available/uvdesk.conf
+
+# Enable Uvdesk site
+RUN a2ensite uvdesk
+
+# Restart Apache
+RUN service apache2 restart"	"# Use an official PHP runtime as a parent image
+FROM php:7.3-apache
+
+# Set the working directory in the container
+WORKDIR /var/www/html
+
+# Install any needed packages specified in requirements.txt
+RUN apt-get update && \
+    apt-get install -y libpng-dev libjpeg-dev libmcrypt-dev mysql-client zlib1g-dev git unzip && \
+    docker-php-ext-install pdo_mysql gd zip
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Clone Uvdesk
+RUN git clone https://github.com/uvdesk/community-skeleton.git uvdesk
+
+# Checkout to specific version
+WORKDIR /var/www/html/uvdesk
+RUN git checkout v1.1.3
+
+# Install Uvdesk via Composer
+RUN composer install
+
+# Copy Uvdesk into working directory
+WORKDIR /var/www/html
+RUN cp -R uvdesk/* /var/www/html && \
+    chown -R www-data:www-data /var/www/html
+
+# Expose port 80
+EXPOSE 80
+
+# Run Apache in Foreground
+CMD [""apache2-foreground""]"	"BUILDING ERROR
+Missing mailparse/imap/mysqli php extension
+Mailparse need to do manually ""pecl install mailparse && docker-php-ext-enable mailparse""
+- Needed libc-client-dev/libkrb5-dev package and command ""docker-php-ext-configure imap --with-kerberos --with-imap-ssl"" in order to make imap extension working
+
+WORKING ERROR
+- 403 Forbidden, apache.conf needed AllowOverride all
+- Set ""Options +Indexes"" in ""docker-php.conf""
+
+Exploit worked with the payload ""python3 exploit.py -u ""http://localhost:8888/helpdesk-project/public"" -c ""cat /etc/passwd"", removing in the code double slash in some urls."	"BUILDING ERROR
+- uvdesk.conf is missing, so a2ensite can't work without configuration
+- mysql-client package has new name, now it's default-mysql-client
+- extracted folder had different name
+- upload subfolder doesn't exist
+
+WORKING ERROR
+- the extracted project wasn't builded using composer
+- 403 Forbidden, apache.conf needed AllowOverride all
+- Set ""Options +Indexes"" in ""docker-php.conf"""	"BUILDING ERROR
+- mysql-client package has new name, now it's default-mysql-client
+- missing libzip-dev package required to build uvdesk
+
+Can’t start because it tries to checkout branch, but there’s no branch ""v.1.1.3"", so even after fixing it will still not be vulnerable"	"https://stackoverflow.com/questions/15850845/request-exceeded-the-limit-of-10-internal-redirects-due-to-probable-configuratio
+https://stackoverflow.com/questions/70720413/limitinternalrecursion-error-on-php-project
+https://docs.uvdesk.com/uvdemo/installation/installation-ubuntu.html
+https://forums.uvdesk.com/topic/2062/when-installing-uvdesk-public-folder-unable-to-open-in-browser/7
+https://forums.uvdesk.com/topic/1830/installation-error-uvdesk-public-wizard-xhr-load-super-user-1146-table-uvdesk1-uv_support_role-doesn-t-exist
+https://forums.uvdesk.com/topic/1889/add-index-php-after-public-folder/2
+https://forums.uvdesk.com/topic/527/not-able-to-configure-the-uvdesk-properly
+https://forums.uvdesk.com/topic/2100/installation-error
+https://forums.uvdesk.com/topic/2071/troubles-with-installation-of-uvdesk
+https://www.php.net/manual/en/book.mailparse.php
+https://www.php.net/manual/en/mailparse.setup.php
+https://github.com/mlocati/docker-php-extension-installer
+https://www.php.net/manual/en/book.mysqli.php
+https://dev.mysql.com/downloads/mysql/
+https://stackoverflow.com/questions/5679258/mysql-service-is-missing
+https://askubuntu.com/questions/1334661/cant-install-mysql-server-with-sudo-apt-install-mysql-server
+https://dev.mysql.com/doc/refman/8.0/en/mysqld.html
+https://dev.mysql.com/doc/refman/8.0/en/using-systemd.html
+https://it.comp.os.linux.sys.narkive.com/Z2e2s25f/mysqld-safe-mysqld-from-pid-file-var-run-mysqld-mysqld-pid-ended#
+https://dba.stackexchange.com/questions/137619/cant-initialize-mysql-mysqld-safe-mysqld-from-pid-file-var-run-mariadb-mariad
+https://stackoverflow.com/questions/5661069/missing-var-lib-mysql-mysql-sock-file
+https://stackoverflow.com/questions/43446218/dpkg-error-processing-package-mysql-server-dependency-problems
+https://github.com/YunoHost-Apps/freshrss_ynh/issues/94
+https://dba.stackexchange.com/questions/202345/wont-start-innodb-corrupted-page-tablespace-was-not-found
+https://stackoverflow.com/questions/57048428/e-package-mysql-client-has-no-installation-candidate-in-php-fpm-image-build-u
+https://www.rosehosting.com/blog/how-to-install-and-configure-php-opcache-on-ubuntu-20-04/"
+Pre-auth Remote Code Execution (RCE) (https://www.exploit-db.com/exploits/51532) CVE-2023-0297	Generate a dockerfile of PyLoad 0.5.0	"# Use an official Python image as base
+FROM python:3.9-slim
+
+# Set environment variables
+ENV PYLOAD_VERSION 0.5.0
+
+# Install dependencies
+RUN apt-get update && apt-get install -y wget unzip
+
+# Download and install PyLoad
+WORKDIR /opt
+RUN wget https://github.com/pyload/pyload/archive/${PYLOAD_VERSION}.zip && unzip ${PYLOAD_VERSION}.zip && mv pyload-${PYLOAD_VERSION} pyload && rm ${PYLOAD_VERSION}.zip
+
+# Install Python dependencies
+WORKDIR /opt/pyload
+RUN pip install -r requirements.txt
+
+# Expose ports
+EXPOSE 8000
+
+# Start PyLoad
+CMD [""python"", ""pyLoadCore.py"", ""--configdir=/config""]"	"FROM python:3.9
+
+# Install PyLoad dependencies
+RUN pip install pyload==0.5.0 aiohttp==3.8.1 psutil==5.8.8
+
+# Copy PyLoad source code
+COPY . /app
+
+# Set working directory
+WORKDIR /app
+
+# Expose PyLoad port
+EXPOSE 9080
+
+# Start PyLoad
+CMD [""gunicorn"", ""-w"", ""4"", ""-b"", ""0.0.0.0:9080"", ""pyload.wsgi:application""]"	"# Use an official Python runtime as a parent image
+FROM python:3.8-slim-buster
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Add the current directory contents into the container at /app
+ADD . /app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 8000 available to the world outside this container
+EXPOSE 8000
+
+# Run pyLoad when the container launches
+CMD [""python"", ""pyLoad.py""]"	Pyload GitHub page released until version 0.4.20 while it’s available newer version only on pip	"Pyload package on pip is called ""pyload-ng"" and there’s no 0.5.0 version, so it’s impossible to track the vulnerable version, the versioning system work with the following syntax:
+0.5.0XY.devYYY
+X is a letter
+Y is a number
+Example: 0.5.0b3.dev60"	It’s a generic python application who need a lot of work and customization to even start	"https://github.com/pyload/pyload
+https://github.com/pypa/pip/issues/7975
+https://github.com/pypa/pip/pull/8978
+https://github.com/pypa/pip/issues/10052
+https://pypi.org/project/pyload-ng/"
+Remote Code Execution (https://www.exploit-db.com/exploits/47837) CVE-2019-16278	Generate a dockerfile of nostromo 1.9.6	"# Use an official Ubuntu base image
+FROM ubuntu:18.04
+
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y build-essential && rm -rf /var/lib/apt/lists/*
+
+# Download and compile nostromo 1.9.6
+WORKDIR /tmp
+RUN apt-get update && apt-get install -y wget && wget http://www.nazgul.ch/dev/nostromo-1.9.6.tar.gz && tar -zxvf nostromo-1.9.6.tar.gz && rm nostromo-1.9.6.tar.gz && cd nostromo-1.9.6 && make && make install
+
+# Expose the default port used by nostromo (8080)
+EXPOSE 8080
+
+# Run nostromo as a foreground process
+CMD [""nhttpd"", ""-D"", ""-p"", ""8080"", ""-H"", ""/var/nostromo""]"	"FROM ubuntu:latest
+
+# Install Nostromo dependencies
+RUN apt-get update && apt-get install -y libjpeg-dev libpng-dev libpq-dev libzip-dev mysql-client sqlite3
+
+# Download Nostromo 1.9.6
+RUN wget http://www.nazgul.ch/dev/nostromo-1.9.6.tar.gz
+
+# Extract Nostromo 1.9.6
+RUN tar -xzvf nostromo-1.9.6.tar.gz
+
+# Install Nostromo 1.9.6
+RUN cd nostromo-1.9.6 && ./configure && make && make install
+
+# Configure Nostromo 1.9.6
+COPY ./nostromo.conf /etc/nostromo/nostromo.conf
+
+# Expose Nostromo 1.9.6 port
+EXPOSE 80
+
+# Start Nostromo 1.9.6
+CMD [""/usr/local/sbin/nostromo""]"	"# Use an official Alpine Linux as a parent image due to its small size
+FROM alpine:latest
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Add the current directory contents into the container at /app
+ADD . /app
+
+# Update and install necessary packages
+RUN apk update && apk add build-base
+
+# Download and extract Nostromo
+RUN wget http://www.nazgul.ch/dev/nostromo-1.9.6.tar.gz \
+    && tar -xzf nostromo-1.9.6.tar.gz \
+    && cd nostromo-1.9.6
+
+# Build and install Nostromo
+RUN make && make install
+
+# Make port 8080 available to the world outside this container
+EXPOSE 8080
+
+# Run Nostromo when the container launches
+CMD [""nhttpd""]"	"BUILDING ERROR:
+- Missing ""libssl-dev"" package required in make function
+- Missing ""groff-base"" package required for ""nroff"" function (GNU troff text-formatting system)
+- Remove all flags of the entrypoint nhttpd, because they don't exist
+- Added custom configuration as actual configuration, changing ip, user and others"	"BUILDING ERROR:
+- Installed ""wget"" package, needed to download nostromo archive
+./configure executable doesn't exist
+- mysql-client package has new name, now it's default-mysql-client
+- Daemon service ""/usr/local/sbin/nostromo"" doens't exist"	"BUILDING ERROR:
+- Missing ""libressl-dev"" package required in make function
+- Missing ""groff"" package required for ""nroff"" function (GNU troff text-formatting system)
+- After dowload with wget, changing directory in a different ""RUN"" command, doesn't keep changed directory
+- Missing ""openssl"" package required in make function
+
+Main error: Bing opted to start from an alpine distribution due to its small size, but the makefile is for debian distribution (switching to ubuntu:latest and apt)
+
+After changing base image libressl-dev became libssl-dev and need wget, make and gcc package"	"https://stackoverflow.com/questions/17915098/openssl-ssl-h-no-such-file-or-directory-during-installation-of-git
+https://command-not-found.com/nroff
+https://httpd.apache.org/docs/2.4/programs/httpd.html
+https://github.com/bleubyte/nostromo_nhttpd/blob/main/nostromo/conf/nhttpd.conf
+https://github.com/mmaheu/nostromo/blob/master/docker/Dockerfile
+https://www.gsp.com/cgi-bin/man.cgi?section=8&topic=NHTTPD
+https://stackoverflow.com/questions/57914201/how-can-i-start-nostromo-webserver
+https://stackoverflow.com/questions/35270493/dockerfile-cmd-not-running-at-container-start
+https://stackoverflow.com/questions/25775266/how-to-keep-docker-container-running-after-starting-services"
+Cross-Site Scripting (https://www.exploit-db.com/exploits/44216) CVE-2018-6193	Create a dockerfile of Routers2 2.24	"As of my last knowledge update in January 2022, I don't have specific information about ""Routers2 2.24."" If it's a software or application that has been released or updated after that date, I might not have the details."	"FROM ubuntu:20.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y curl gdemu gnuplot imagemagick libsdl2-dev libx11-dev pulseaudio qt5-default wine-stable
+
+# Download and install Routers2 2.24
+RUN wget -O Routers2.zip https://www.routers2.com/download/routers2_2.24.zip && unzip Routers2.zip && cd Routers2 && ./install.sh
+
+# Set working directory
+WORKDIR /opt/routers2
+
+# Expose ports
+EXPOSE 8080
+
+# Run the Routers2 2.24 server
+CMD [""Routers2Server"", ""--port"", ""8080""]"	"# Use an official Perl runtime as a parent image
+FROM perl:5.32
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+ADD . /app
+
+# Install any needed packages specified in requirements.txt
+RUN cpan App::cpanminus && \\
+    cpanm --installdeps .
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Define environment variable
+ENV NAME World
+
+# Run routers2.pl when the container launches
+CMD [""perl"", ""routers2.pl""]"	Routers2 v2.24 came in 2015 and yet GPT hasn’t any information on it	"BUILDING ERROR:
+- Installed ""wget"" package, needed to download routers2 archive
+- Added ENV variable ""DEBIAN_FRONTEND noninteractive"" to disable interactive blocking prompt
+
+Can't continue analyzing because www.routers2.com doens't exist"	Installation of perl package based on perl base image, but the actual router2 isn't a perl program, and the dockerfile doesn't even download any kind of file related to routers2	"https://stackoverflow.com/questions/62299928/r-installation-in-docker-gets-stuck-in-geographic-area
+https://askubuntu.com/questions/462690/what-does-apt-get-fix-missing-do-and-when-is-it-useful
+https://github.com/sshipway/routers2"
+File Enumeration / Path Traversal (https://www.exploit-db.com/exploits/40596) CVE-2016-7982	Create a dockerfile of SPIP 3.1.1	"# Use an official PHP with Apache image as base
+FROM php:7.4-apache
+
+# Set the working directory inside the container
+WORKDIR /var/www/html
+
+# Download and extract SPIP 3.1.1
+RUN apt-get update && apt-get install -y wget unzip && wget https://www.spip.net/spip.php?page=telechargement&version=zip -O spip.zip && unzip spip.zip && rm spip.zip && chown -R www-data:www-data .
+
+# Create a .htaccess file with recommended settings
+RUN echo ""php_flag magic_quotes_gpc off"" > /var/www/html/.htaccess && echo ""php_flag register_globals off"" >> /var/www/html/.htaccess && echo ""php_flag display_errors off"" >> /var/www/html/.htaccess && echo ""Options -Indexes"" >> /var/www/html/.htaccess
+
+# Expose port 80 for Apache
+EXPOSE 80
+
+# Set recommended PHP.ini settings
+RUN echo 'date.timezone = ""UTC""' > /usr/local/etc/php/php.ini
+RUN echo 'memory_limit = 256M' >> /usr/local/etc/php/php.ini
+RUN echo 'upload_max_filesize = 100M' >> /usr/local/etc/php/php.ini
+RUN echo 'post_max_size = 100M' >> /usr/local/etc/php/php.ini
+RUN echo 'max_execution_time = 600' >> /usr/local/etc/php/php.ini
+
+# Start Apache
+CMD [""apache2-foreground""]"	"FROM ubuntu:20.04
+# Install dependencies
+RUN apt-get update && apt-get install -y curl gdemu gnuplot imagemagick libav-tools libdvd-pkg libsdl2-dev libx11-dev pulseaudio qt5-default wine-stable
+
+# Download and install SPIP 3.1.1
+RUN wget -O SPIP3.1.1.zip https://www.spip.com/download/spip_3.1.1.zip && unzip SPIP3.1.1.zip && cd SPIP3.1.1 && ./install.sh
+
+# Set working directory
+WORKDIR /opt/spip3.1.1
+
+# Expose ports
+EXPOSE 8080
+
+# Run the SPIP 3.1.1 server
+CMD [""SPIPServer"", ""--port"", ""8080""]"	"# Use an official PHP runtime as a parent image
+FROM php:7.4-apache
+
+# Set the working directory in the container to /var/www/html
+WORKDIR /var/www/html
+
+# Copy the SPIP source into the container
+COPY spip-3.1.1/ .
+
+# Install any needed packages specified in requirements.txt
+RUN apt-get update && \\
+    apt-get install -y libpng-dev && \\
+    docker-php-ext-install gd
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Define environment variable
+ENV NAME World
+
+# Run apache2 in the foreground
+CMD [""apache2-foreground""]"	"BUILDING ERROR:
+- Wrong url in wget section (correct one: https://files.spip.net/spip/archives/SPIP-v3.1.1.zip)
+
+It's working without any problem"	"BUILDING ERROR:
+- Pakacge ""libav-tools"" doesn't exist, changed with ""ffmpeg""
+- ""gdemu"" package doesn't exist, removed from ""apt install""
+- Wrong url, correct one is ""https://files.spip.net/spip/archives/SPIP-v3.1.1.zip""
+- Extracted folder has different name
+- ./install.sh doesn't exist
+
+Dockerfile was build like if spip was a executable, instead of php files"	Bing working semi automatic, because it will work only if the spip folder has been already downloaded on the host machine	"https://www.spip.net/spip.php?page=telechargement&version=zip
+https://files.spip.org/spip/archives/
+https://programmer.spip.net/
+https://github.com/openai/roboschool/issues/209"
+Directory Traversal (https://www.exploit-db.com/exploits/51636) CVE-2023-37474	Create a dockerfile of copyparty 1.8.1	"# Use an official Python image as base
+FROM python:3.9-slim
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Clone copyparty from GitHub
+RUN apt-get update && apt-get install -y git && git clone --branch v1.8.2 --depth 1 https://github.com/copy/cp /app && apt-get remove -y git && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expose the default port used by copyparty (replace 8000 with the actual port)
+EXPOSE 8000
+
+# Set environment variables if needed
+ENV ENV_VARIABLE=value
+
+# Specify the command to run copyparty
+CMD [""python"", ""cp.py"", ""--host"", ""0.0.0.0"", ""--port"", ""8000""]"	"FROM python:3.9
+# Install copyparty dependencies
+RUN pip install copyparty==1.8.1
+
+# Copy copyparty source code
+COPY . /app
+
+# Set working directory
+WORKDIR /app
+
+# Expose copyparty port
+EXPOSE 8000
+
+# Start copyparty
+CMD [""gunicorn"", ""-w"", ""4"", ""-b"", ""0.0.0.0:8000"", ""copyparty.wsgi:application""]"	"# Use an official Python runtime as a parent image
+FROM python:3.9
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+ADD . /app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Define environment variable
+ENV NAME World
+
+# Run copyparty.py when the container launches
+CMD [""python"", ""copyparty.py""]"	"BUILDING ERROR:
+- wrong git url, opted for release with python file instead of source project tar.gz (https://github.com/9001/copyparty/releases/download/v1.8.2/copyparty-sfx.py)
+
+WORKING ERROR:
+- ""host"" and ""port"" flags in CMD command doesn't exist
+- default port is 80/443, prefered to change EXPOSE instead of finding right flag
+- exploit use 3923 port instead of 80, because by default the script use port 80/443/3923
+
+Directory traversal working as declared"	"BULDING ERROR
+exposing wrong port
+CMD command using gunicorn which is not installed, instead running with copyparty module (CMD [""copyparty""])"	It’s a generic python application who need a lot of work and customization to even start	"https://stackoverflow.com/questions/22147574/github-fatal-could-not-read-username-for-https-github-com-no-such-file-o
+https://github.com/9001/copyparty/releases/tag/v1.8.2
+https://github.com/9001/copyparty#complete-examples"
+Path Traversal & Remote Code Execution (RCE) (https://www.exploit-db.com/exploits/50383) CVE-2021-41773	Create a dockerfile of Apache HTTP Server 2.4.49	"# Use an official Apache HTTP Server image as base
+FROM httpd:2.4.49-alpine
+
+# Optionally, set environment variables for Apache configuration
+ENV APACHE_SERVER_NAME=localhost APACHE_SERVER_ADMIN=admin@example.com
+
+# Optionally, copy your custom Apache configuration files
+COPY httpd.conf /usr/local/apache2/conf/httpd.conf
+COPY httpd-vhosts.conf /usr/local/apache2/conf/extra/httpd-vhosts.conf
+
+# Optionally, copy your web application files to the document root
+COPY ./your-web-app /usr/local/apache2/htdocs/
+
+# Expose port 80 for Apache
+EXPOSE 80
+
+# Start Apache
+CMD [""httpd-foreground""]"	"FROM httpd:2.4.49
+
+# Install PHP
+RUN apt-get update && apt-get install -y libapache2-mod-php php7.4-fpm
+RUN phpenable modules mcrypt
+
+# Copy the default Apache configuration file
+COPY /etc/apache2/sites-available/00-default.conf /etc/apache2/sites-available/default.conf
+
+# Enable the default Apache site
+RUN a2ensite default
+
+# Restart Apache
+RUN service apache2 restart"	"# Use an official httpd runtime as a parent image
+FROM httpd:2.4.49
+
+# Copy local configuration file to the container
+COPY ./my-httpd.conf /usr/local/apache2/conf/httpd.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Run httpd in the foreground
+CMD [""httpd-foreground""]"	"BUILDING ERROR:
+- 3 custom copy configuration command needed are commented
+
+WORKING ERROR:
+- AH01630: client denied by server configuration: /bin/sh; needed to modify line 250 of ""httpd.conf"" in ""Require all granted"""	"BUILDING ERROR:
+- Removed COPY and a2ensite command, don't have custom configuration
+Using CMD ""apache2 restart"" without ""apache2"" getting recognized, instead of ""httpd-foreground""
+Package php7.4-fpm is called instead php-fpm
+Installing package and enabling them when the base image is enough
+
+Same working error as GPT"	"BUILDING ERROR:
+- Removed COPY command, don’t have custom configuration
+
+Same working error as GPT"	"https://hub.docker.com/_/httpd
+https://stackoverflow.com/questions/18392741/apache2-ah01630-client-denied-by-server-configuration
+https://stackoverflow.com/questions/73447142/how-to-fix-docker-php-ext-enable-not-found-when-dockerfile-is-from-debian10"
+Buffer Overflow (https://www.exploit-db.com/exploits/51193) CVE-2021-44790	Create a dockerfile of Apache 2.4.50	"# Use an official Apache HTTP Server image as the base image
+FROM httpd:2.4.50
+
+# Optionally, set environment variables or copy configuration files if needed
+# ENV VARIABLE_NAME=value
+# COPY custom-httpd.conf /usr/local/apache2/conf/httpd.conf
+
+# Expose the port that Apache will run on (default is 80)
+EXPOSE 80
+
+# Set the working directory (optional)
+# WORKDIR /usr/local/apache2/htdocs
+
+# You may copy your web content into the container (uncomment and adjust if needed)
+# COPY ./your-web-content /usr/local/apache2/htdocs/
+
+# Command to run Apache in the foreground
+CMD [""httpd-foreground""]"	"FROM alpine:latest
+
+RUN apk add --no-cache apache2 apache2-utils
+
+COPY ./conf/httpd.conf /etc/apache2/httpd.conf
+
+RUN rm -rf /var/www/html && mkdir -p /var/www/html
+
+EXPOSE 80
+
+CMD [""httpd"", ""-DFOREGROUND""]"	"# Use an official PHP runtime as a parent image
+FROM php:7.4-apache
+
+# Set the working directory in the container to /var/www/html
+WORKDIR /var/www/html
+
+# Install Apache
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y apache2
+
+# Copy local code to the container's workspace.
+ADD . /var/www/html/
+
+# Apache config
+RUN a2enmod rewrite
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose port 80
+EXPOSE 80
+
+# Run Apache
+CMD [""/usr/sbin/apache2ctl"", ""-D"", ""FOREGROUND""]"	"WORKING ERROR:
+Enabled lua module to handle lua files: ""LoadModule lua_module modules/mod_lua.so"" in ""/usr/local/apache2/conf/httpd.conf""
+
+Got AH00052: child pid 23 exit signal Segmentation fault (11)"	"BUILDING ERROR:
+-  Removed COPY command, don’t have custom configuration
+It’s apache 2.4.58 version, which isn’t vulnerable to  CVE-2021-44790 (checked that hasn’t version 2.4.50)
+
+Can’t work more on it"	"BUILDING ERROR
+-  Removed ADD command, don’t have custom configuration
+It’s apache 2.4.56 version, which isn’t vulnerable to  CVE-2021-44790 (checked that hasn’t version 2.4.50)
+
+Can’t work more on it"	"https://httpd.apache.org/docs/trunk/mod/mod_lua.html
+https://www.icelab.eu/blog/apache-e-web-server-3/attivare-disattivare-moduli-apache-2-34.htm
+https://stackoverflow.com/questions/49809748/add-mod-rewrite-to-docker-image-httpdalpine
+https://www.admin-magazine.com/Articles/Lua-for-Apache
+https://stackoverflow.com/questions/38550375/apache2-4-with-lua-scripts-luamaphandler-causes-config-syntax-error"
+Arbitrary File Upload (https://www.exploit-db.com/exploits/42934) CVE-2017-6090	Generate a dockerfile of PhpCollab 2.5.1	"# Use an official PHP and Apache image as the base image
+FROM php:7.4-apache
+
+# Set the working directory inside the container
+WORKDIR /var/www/html
+
+# Download and extract PhpCollab 2.5.1
+RUN curl -o phpCollab.zip -SL https://github.com/phpcollab/phpcollab/releases/download/2.5.1/phpcollab2.5.1.zip \
+    && unzip phpCollab.zip \
+    && rm phpCollab.zip
+
+# Set permissions (adjust as needed)
+RUN chown -R www-data:www-data .
+
+# Install PHP extensions and other dependencies if needed
+# RUN docker-php-ext-install extension_name
+# RUN apt-get update && apt-get install -y other_dependency
+
+# Expose the port that Apache will run on (default is 80)
+EXPOSE 80
+
+# You may copy additional configuration files if needed
+# COPY custom-config.php /var/www/html/includes/settings.php
+
+# Command to run Apache in the foreground
+CMD [""apache2-foreground""]"	"FROM debian:buster
+
+WORKDIR /var/www/phpcollab
+
+RUN apt-get update && apt-get install -y curl unzip git php php-gd php-mysql php-mbstring php-xml mysql-client
+
+RUN curl -fsSL https://github.com/phpcollab/phpcollab/archive/release-2.5.1.tar.gz | tar -zx
+
+RUN mv phpcollab-release-2.5.1 /var/www/phpcollab/phpcollab
+
+RUN chown -R www-data:www-data /var/www/phpcollab
+
+RUN cd /var/www/phpcollab/phpcollab && php ./install.php -i 0
+
+EXPOSE 80
+
+CMD [""php"", ""index.php""]"	"# Use an official PHP runtime as a parent image
+FROM php:7.2-apache
+
+# Set the working directory in the container to /var/www/html
+WORKDIR /var/www/html
+
+# Install any needed packages specified in requirements.txt
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git
+
+# Clone the specific version of PhpCollab
+RUN git clone --branch v2.5.1 https://github.com/phpcollab/phpcollab.git .
+
+# Install PhpCollab dependencies
+RUN docker-php-ext-install pdo_mysql
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Run Apache in the foreground
+CMD [""/usr/sbin/apache2ctl"", ""-D"", ""FOREGROUND""]"	"BULDING ERROR:- Missing ""unzip"" package to unzip phppcollab package
+- Slightly different url (https://github.com/phpcollab/phpcollab/releases/download/v2.5.1/phpcollab-v2.5.1.zip)
+
+WORKING ERROR:
+- Needed base package ""apt-get update && apt-get install -y wget libz-dev libpng-dev libicu-dev unzip""
+- Needed php extension for mysql: docker-php-ext-install mysqli && docker-php-ext-install gd && docker-php-ext-install gettext && docker-php-ext-install intl
+
+Setup.php has mysql function written for php5.7, not compatible with php7.4, because all the function are called mysqli_* instead, and all of them requires one more parameter which define the actual database connection ($dbc)"	"BUILDING ERROR
+Wrong url and wrong mysql-client package name
+Wrong extracted package name
+No need to run php install.php
+
+Didn’t actually evaluate further since previous problem with GPT version and CMD error in php"	"BUILDING ERROR
+Wrong url and wrong mysql-client package name
+Wrong extracted package name
+
+Didn’t actually evaluate further since previous problem with GPT version"	"https://github.com/phpcollab/phpcollab/blob/v2.10.3/docs/install.md
+https://github.com/rubo77/php-mysql-fix?tab=readme-ov-file
+https://phpcollab.github.io/phpcollab/installation/Installation.html
+https://w3schools.sinsixx.com/php/func_mysql_connect.asp.htm"
+Account Hijack (https://www.exploit-db.com/exploits/47879) CVE-2019-19844	Generate a dockerfile of Python 3.7.x, with Django, and with PostgreSQL 9.5	"# Use an official Python runtime as a parent image
+FROM python:3.7
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y postgresql-client-9.5
+
+# Install Python dependencies
+COPY requirements.txt /app/
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt
+
+# Copy the current directory contents into the container at /app
+COPY . /app/
+
+# Expose the port that Django will run on
+EXPOSE 8000
+
+# Run the command to start Django development server
+CMD [""python"", ""manage.py"", ""runserver"", ""0.0.0.0:8000""]"	"FROM python:3.7-slim
+
+# Install PostgreSQL client
+RUN apt-get update && apt-get install -y libpq-dev
+
+# Install Django and other dependencies
+RUN pip install django psycopg2
+
+# Create a working directory
+WORKDIR /app
+
+# Copy the Django project files
+COPY . .
+
+# Build the PostgreSQL database
+RUN python manage.py migrate
+
+# Start the Django development server
+EXPOSE 8000
+CMD [""python"", ""manage.py"", ""runserver"", ""0.0.0.0:8000""]"	"# Use an official Python runtime as a parent image
+FROM python:3.7-slim
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Add the current directory contents into the container at /app
+ADD . /app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 8000 available to the world outside this container
+EXPOSE 8000
+
+# Define environment variable
+ENV NAME World
+
+# Run app.py when the container launches
+CMD [""python"", ""manage.py"", ""runserver"", ""0.0.0.0:8000""]"	"- Didn’t install Django, just required from user a requirements.txt containing the needed packages
+- postgresql-client package doesn’t exist, moreover it’s a clieint, not a server"	"BUILDING ERROR:
+- ""psycopg2"" package need ""gcc""
+- Added ""Django-admin startproject test_project"" to create Django Project base folder and changed working directory
+
+WORKING ERROR:- PostgreSQL installation hard ""apt install postgresql-16""
+- PSQL cluster starting (in case docker base image isnt’ psql) ""pg_lsclusters"" to list all cluster, then ""pg_ctlcluster <version> <name> <command>"", in our case ""16 main start"""	It’s a generic python application who need a lot of work and customization to even start	"https://www.postgresql.org/download/
+https://www.postgresql.org/docs/15/server-start.html
+https://askubuntu.com/questions/898010/postgres-command-not-found-after-regular-install-of-postgres-and-configure
+https://askubuntu.com/questions/385416/pg-ctl-command-not-found-what-package-has-this-command
+https://stackoverflow.com/questions/26082128/improperlyconfigured-you-must-either-define-the-environment-variable-django-set"
+HTML Injection (https://www.exploit-db.com/exploits/51073) CVE-2019-13068	Create a dockerfile of Grafana 6.2.4	"# Use an official Grafana base image
+FROM grafana/grafana:6.2.4
+
+# Add any additional configurations or plugins as needed
+# For example, to add a custom configuration file, you can use the COPY command:
+# COPY custom.ini /etc/grafana/grafana.ini
+
+# Expose the port Grafana runs on
+EXPOSE 3000
+
+# Start Grafana
+CMD [""grafana-server"", ""--config=/etc/grafana/grafana.ini""]"	"FROM grafana/grafana:6.2.4
+
+# Set the working directory to /var/lib/grafana
+WORKDIR /var/lib/grafana
+
+# Copy Grafana configuration file
+COPY ./grafana.ini /etc/grafana/grafana.ini
+
+# Expose the Grafana port
+EXPOSE 3000
+
+# Start Grafana
+CMD [""grafana-server"", ""--config"", ""/etc/grafana/grafana.ini""]"	"# Use an official Grafana runtime as a parent image
+FROM grafana/grafana:6.2.4
+
+# Set the working directory in the container to /var/lib/grafana
+WORKDIR /var/lib/grafana
+
+# Copy the Grafana configuration file into the container
+COPY ./grafana.ini /etc/grafana/grafana.ini
+
+# Make port 3000 available to the world outside this container
+EXPOSE 3000
+
+# Run Grafana when the container launches
+CMD [""/run.sh""]"	No problem at all, was everything already installed, exploit succeed creating a new dashbord, and inserting the HTML payload in the drilldown link title or uri 	Working as GPT, no problem, just configuration file copy not needed	It was perfect like other one, but failed in the end because of wrong CMD, and configuration file copy not needed	https://stackoverflow.com/questions/54039604/what-is-the-default-username-and-password-for-grafana-login-page
+Auth Bruteforce Bypass (https://www.exploit-db.com/exploits/48942) CVE-2019-17240	Generate a dockerfile of Bludit 3.9.2	"# Use the official PHP and Apache image
+FROM php:7.4-apache
+
+# Set the working directory to /var/www/html
+WORKDIR /var/www/html
+
+# Download and install dependencies
+RUN apt-get update && \
+    apt-get install -y unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Download and install Bludit
+RUN curl -o bludit.zip -SL https://github.com/bludit/bludit/archive/3.9.2.zip && \
+    unzip bludit.zip && \
+    rm bludit.zip && \
+    mv bludit-3.9.2/* . && \
+    rm -r bludit-3.9.2
+
+# Set up permissions
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache
+CMD [""apache2-foreground""]"	"FROM nginx:latest
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    php7.4-fpm \
+    php7.4-mysql \
+    php7.4-mbstring \
+    php-curl
+
+# Create a working directory
+WORKDIR /var/www/bludit
+
+# Download Bludit and extract it
+RUN wget https://github.com/bludit/bludit/releases/download/v3.9.2/bludit-3.9.2.zip && \
+    unzip bludit-3.9.2.zip && \
+    rm bludit-3.9.2.zip
+
+# Copy Bludit configuration file
+COPY ./bludit.conf /etc/nginx/sites-available/default
+
+# Enable Bludit configuration
+RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Remove default nginx configuration
+RUN rm /etc/nginx/sites-enabled/default.conf
+
+# Change ownership of Bludit directory
+RUN chown -R www-data:www-data /var/www/bludit
+
+# Expose Bludit port
+EXPOSE 80
+
+# Start Nginx and PHP-FPM
+CMD [""nginx"", ""-g"", ""daemon off;""]"	"# Use an official PHP runtime as a parent image
+FROM php:7.3-apache
+
+# Set the working directory in the container to /var/www/html
+WORKDIR /var/www/html
+
+# Remove the default Apache index.html
+RUN rm index.html
+
+# Download and install Bludit
+RUN curl -o bludit.zip -SL https://www.bludit.com/releases/bludit-3-9-2.zip \
+    && unzip bludit.zip \
+    && rm bludit.zip
+
+# Change the ownership of the application directory to the apache user
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache service
+CMD [""apache2-foreground""]"	"WORKING ERROR:
+In order to install the progam ( install.php ) are required these php modules: gd, json and dom
+To build those modules we need the packages ""zlib"", ""libpng"" and ""libxml2-dev""
+
+Using python script with pwntools module credentials bruteforce is possible"	"BUILDING ERROR:
+Removed COPY command, don’t have custom configuration and the linking and removing after it
+Removed version near package name of php modules
+Installed ""wget"" package and unzip, needed to download bludit archive 
+Added flag -O to wget to change output file name
+In order to install the progam ( install.php ) are required these php modules: gd, json and dom
+To build those modules we need the packages ""zlib"", ""libpng"" and ""libxml2-dev""
+
+WORKING ERROR:
+ Start and configure php-fpm8.2 with the command ""php-fpm8.2"" and modifying conf file in ""/etc/php/8.2/fpm/pool.d/www.conf"" and ""/etc/nginx/conf.d/default.conf""
+In ""/etc/php/8.2/fpm/pool.d/www.conf"" listen.owner and listen.group must be ""nginx""
+In ""/etc/nginx/config.d/default.conf"" the root folder is set with ""root /var/www/bludit/bludit-3.9.2;"" directive and changing fastcgi_pass to unix:/run/php/php8.2-fpm.sock:
+
+
+Got some error with PHP deprecated functions, because it used PHP8.2, but worked the same as GPT version"	"Same problem as before, but more problem because of base configuration error and need to install extensions, but probably easier than Gemini version
+Working fine after php-ext installation and base program"	"https://stackoverflow.com/questions/37321397/no-package-libxml-2-0-found
+https://www.theserverside.com/blog/Coffee-Talk-Java-News-Stories-and-Opinions/Nginx-PHP-FPM-config-examplehttps://www.digitalocean.com/community/tutorials/php-fpm-nginx
+https://nginx.org/en/docs/http/ngx_http_fastcgi_module.html#fastcgi_pass
+https://bobcares.com/blog/php-fpm-sock-failed-13-permission-denied/
+https://stackoverflow.com/questions/19285355/nginx-403-error-directory-index-of-folder-is-forbidden"
+Improper Authentication Control (https://www.exploit-db.com/exploits/51226) CVE-2022-31125	Generate a dockerfile of Roxy WI v6.1.0.0	"# Use the official Node.js image as the base image
+FROM node:14
+
+# Set working directory
+WORKDIR /app
+
+# Clone Roxy WI repository
+RUN git clone -b v6.1.0.0 --single-branch https://github.com/marklogic/roxy-wi.git .
+
+# Install dependencies
+RUN npm install
+
+# Expose default port
+EXPOSE 3000
+
+# Start Roxy WI
+CMD [""npm"", ""start""]"	"FROM ubuntu:18.04
+
+WORKDIR /opt/roxy
+
+RUN apt-get update -y
+RUN apt-get install -y wget unzip curl
+
+# Download Roxy WI archive
+RUN wget https://github.com/open-mmlab/Roxy-WI/releases/download/v6.1.0.0/roxy-wi-6.1.0.0-linux_x64.zip
+
+# Extract Roxy WI archive
+RUN unzip roxy-wi-6.1.0.0-linux_x64.zip
+
+# Set Roxy WI executable permissions
+RUN chmod +x roxy-wi
+
+# Add Roxy WI to PATH
+ENV PATH=""/opt/roxy/roxy-wi-6.1.0.0/bin:$PATH""
+
+# Expose Roxy WI port
+EXPOSE 8080
+
+# Start Roxy WI
+ENTRYPOINT [""roxy-wi""]"	"# Use an official Python runtime as a parent image
+FROM python:3.7-slim
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Add the current directory contents into the container at /app
+ADD . /app
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
+
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
+# Define environment variable
+ENV NAME World
+
+# Run app.py when the container launches
+CMD [""python"", ""app.py""]"	GPT assumed that Roxy was based on npm package instead of Python3, so can’t start it and has wrong git repo url	Dockerfile was build like if Roxy-WI was a executable, instead of python3 project used with Nginx and Apache2	It's the closer one as solution, because has python3 as base image, but can’t really understand what is or how to use this application	"https://roxy-wi.org/installation#manual&gsc.tab=0
+https://github.com/hap-wi/roxy-wi"
+SQL injection (https://www.exploit-db.com/exploits/46838) CVE-2019-11600	Generate a dockerfile of OpenProject 8.3.1	"# Use the official Ruby image with Node.js and Yarn
+FROM ruby:2.5.8
+
+# Set the Rails environment to production
+ENV RAILS_ENV=production
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        nodejs \
+        libpq-dev \
+        postgresql-client \
+        imagemagick \
+        libmagickwand-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install OpenProject
+RUN curl -sSL https://www.openproject.org/download/repositories/stable/Debian_9/Release.key | gpg --dearmor > /usr/share/keyrings/openproject-archive-keyring.gpg \
+    && echo ""deb [signed-by=/usr/share/keyrings/openproject-archive-keyring.gpg] http://dl.packager.io/srv/opf/openproject/stable/8.3/Debian/9/ openproject main"" > /etc/apt/sources.list.d/openproject.list \
+    && apt-get update && apt-get install -y openproject=8.3.1-20201029143849 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Expose OpenProject port
+EXPOSE 6000
+
+# Start OpenProject
+CMD [""bash"", ""-c"", ""rm -f tmp/pids/server.pid && bundle exec rails server -b '0.0.0.0' -p 6000""]"	"FROM ubuntu:18.04
+
+WORKDIR /opt/openproject
+
+RUN apt-get update -y
+RUN apt-get install -y curl wget unzip nodejs npm
+
+# Download OpenProject archive
+RUN curl -sO https://github.com/opf/openproject/releases/download/v8.3.1/openproject-community-8.3.1.tar.gz
+
+# Extract OpenProject archive
+RUN tar -zxvf openproject-community-8.3.1.tar.gz
+
+# Install OpenProject dependencies
+RUN npm install --production
+
+# Copy OpenProject configuration
+COPY openproject.yml /opt/openproject/config/openproject.yml
+
+# Expose OpenProject ports
+EXPOSE 8080
+EXPOSE 80
+
+# Start OpenProject
+ENTRYPOINT [""./bin/openproject""]"	"# Use an official Ruby runtime as a parent image
+FROM ruby:2.5
+
+# Set the working directory in the container to /app
+WORKDIR /app
+
+# Add metadata identifying these images as our build containers
+LABEL openproject.build=""packager""
+
+# Install the necessary software
+RUN apt-get update && apt-get install -y \
+  build-essential \
+  libmysqlclient-dev \
+  mysql-client \
+  libpq-dev \
+  postgresql-client \
+  sqlite3 \
+  zlib1g-dev \
+  libqt4-dev \
+  libxml2-dev \
+  libxslt1-dev \
+  imagemagick \
+  openjdk-8-jre \
+  git
+
+# Clone the specific version of OpenProject
+RUN git clone --branch ""v8.3.1"" --depth 1 https://github.com/opf/openproject.git .
+
+# Install the project dependencies
+RUN bundle install
+
+# Copy the rest of your app's source code from your host to your image filesystem.
+COPY . .
+
+# Expose port 3000 in the container
+EXPOSE 3000
+
+# Start the application server
+CMD [""rails"", ""server"", ""-b"", ""0.0.0.0""]"	Openproject is too hard to automate and setup, but GPT version had the installation part wrong, because repo url didn’t exist	Openproject is too hard to automate and setup, but Gemini version had the installation part wrong, because the version on GitHub doesn’t exist as an archive and tried to use as an npm project	"Openproject is too hard to automate and setup, but Bing version had the installation part wrong, because the branch on GitHub doesn’t exist, had some problem with some packages, like jre8.∑
+Moreover started downloading a lot of useless and conflicting package, like mysql client, mariadb client and postgresql client"	"https://www.openproject.org/docs/installation-and-operations/installation/packaged/#ubuntu-2004
+https://github.com/opf/openproject"
+Remote Code Execution (https://www.exploit-db.com/exploits/44913) CVE-2017-12636	Generate a dockerfile of Apache CouchDB 2.0	"# Use the official CouchDB 2.0 image
+FROM couchdb:2.0
+
+# Expose CouchDB ports
+EXPOSE 5984 4369 9100
+
+# Optionally, you can set environment variables if needed
+# ENV COUCHDB_USER=admin
+# ENV COUCHDB_PASSWORD=mysecretpassword
+
+# You can also copy local.ini to customize the configuration
+# COPY local.ini /opt/couchdb/etc/local.ini
+
+# Start CouchDB
+CMD [""couchdb""]"	"FROM ubuntu:18.04
+
+RUN apt-get update -y
+RUN apt-get install -y default-jre
+RUN mkdir -p /opt/couchdb
+
+WORKDIR /opt/couchdb
+
+# Download CouchDB archive
+RUN wget https://couchdb.apache.org/releases/couchdb-2.0.0.tar.gz
+
+# Extract CouchDB archive
+RUN tar -zxvf couchdb-2.0.0.tar.gz
+
+ENV COUCHDB_HOME /opt/couchdb/couchdb-2.0.0
+
+EXPOSE 5984
+
+ENTRYPOINT [""/opt/couchdb/couchdb-2.0.0/bin/couchdb""]"	"# Use an official Ubuntu runtime as a parent image
+FROM ubuntu:16.04
+
+# Set the maintainer
+LABEL maintainer=""your-email@example.com""
+
+# Install necessary packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    pkg-config \
+    erlang \
+    libicu-dev \
+    libmozjs185-dev \
+    libcurl4-openssl-dev
+
+# Download and install CouchDB
+RUN apt-get install -y wget && \
+    wget http://apache.mirrors.pair.com/couchdb/source/2.0.0/apache-couchdb-2.0.0.tar.gz && \
+    tar xvf apache-couchdb-2.0.0.tar.gz && \
+    cd apache-couchdb-2.0.0 && \
+    ./configure && \
+    make release
+
+# Expose the CouchDB HTTP port
+EXPOSE 5984
+
+# Start CouchDB
+CMD [""./apache-couchdb-2.0.0/rel/couchdb/bin/couchdb""]"	GPT assumed that there’s an already built docker image, and starting from that, skipped all setup and downloading phases	Broken URL from their site, CVE and version too old to be found anywhere	Broken URL from their site, CVE and version too old to be found anywhere, but according to the guide on GitHub, Bing installed all of the required dependency to build the project, despite being rare and unusual	"https://github.com/apache/couchdb/blob/main/README-DEV.rst
+https://github.com/apache/couchdb/blob/main/INSTALL.Unix.md
+https://docs.couchdb.org/en/stable/"

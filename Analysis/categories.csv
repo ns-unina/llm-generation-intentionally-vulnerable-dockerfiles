@@ -1,0 +1,16 @@
+category_id,category_name
+B1,Invalid/obsolete base image
+B2,Missing/obsolete package version
+B3,Missing build dependencies / toolchain
+B4,"External resource not found (URL, mirror)"
+B5,Build-from-source / compilation failure
+B6,Repository configuration failure
+E1,Not actually vulnerable / patched version
+E2,Vulnerability prerequisites not met
+E3,Exploit requires missing external service or application
+E4,Endpoint unavailable / connection refused
+E5,Exploit script mismatch or assumption violation
+R1,Service not started / container exits
+R2,"Runtime misconfiguration (config files, env vars)"
+R3,Missing runtime dependencies
+R5,Missing multi-service orchestration

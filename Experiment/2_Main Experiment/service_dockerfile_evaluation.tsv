@@ -1,0 +1,1020 @@
+Vulnerability	Query generic version	ChatGPT generic version	Query built from source version	ChatGPT source version	Evaluation, similarities and differences
+Username Enumeration (https://www.exploit-db.com/exploits/45233) CVE-2018-15473	Generate a dockerfile of OpenSSH 7.7	"# Use Debian as the base image
+FROM debian:stretch
+
+# Update packages and install OpenSSH server
+RUN apt-get update && \
+    apt-get install -y openssh-server && \
+    apt-get clean
+
+# Copy the SSHD configuration file that allows password authentication
+COPY sshd_config /etc/ssh/sshd_config
+
+# Expose SSH port
+EXPOSE 22
+
+# Start SSH service
+CMD [""/usr/sbin/sshd"", ""-D""]"	Generate a dockerfile of OpenSSH 7.7 building from source	"# Use a base image with necessary dependencies
+FROM ubuntu:latest
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    libssl-dev \
+    zlib1g-dev
+
+# Download OpenSSH source
+RUN wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.7p1.tar.gz
+
+# Extract OpenSSH source
+RUN tar -xzf openssh-7.7p1.tar.gz
+
+# Change directory to OpenSSH source
+WORKDIR /openssh-7.7p1
+
+# Configure and build OpenSSH
+RUN ./configure && \
+    make && \
+    make install
+
+# Cleanup
+RUN rm -rf /openssh-7.7p1* && \
+    apt-get purge -y build-essential wget && \
+    apt-get autoremove -y && \
+    apt-get clean
+
+# Expose SSH port
+EXPOSE 22
+
+# Start SSH service
+CMD [""/usr/local/sbin/sshd"", ""-D""]"	"Generic version just added not requested copy command, it starts but the exploit doesn’t work, probably wrong version
+
+
+Source version needed older version (ubuntu:16.04) because libssl-dev version must be <=1.1.0, it compiled taking more time and occupying way more space, but the script worked fine"
+Unauthorized Access (https://www.exploit-db.com/exploits/46307) CVE-2018-10933	Generate a dockerfile of LibSSH 0.7.5	"# Use a base image with necessary tools and libraries
+FROM ubuntu:latest
+
+# Update package lists and install necessary packages
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    cmake \
+    libssl-dev \
+    zlib1g-dev \
+    git
+
+# Clone LibSSH repository and checkout the desired version
+RUN git clone --branch libssh-0.7.5 https://git.libssh.org/projects/libssh.git /opt/libssh
+
+# Build and install LibSSH
+RUN cd /opt/libssh && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    make install
+
+# Cleanup
+RUN rm -rf /opt/libssh
+
+# Example: copy your application code and build it
+# COPY ./your_app /opt/your_app
+# RUN cd /opt/your_app && make
+
+# Set the entry point to start your application
+# ENTRYPOINT [""/opt/your_app/your_executable""]
+
+# Define any ports your application listens on
+# EXPOSE <port_number>
+
+# Define any volumes you may need
+# VOLUME /path/to/your/volume
+
+# Command to run your application
+# CMD [""your_executable_arguments""]"	Generate a dockerfile of LibSSH 0.7.5 building from source	"# Use a base image with necessary dependencies
+FROM ubuntu:latest
+
+# Install necessary packages to build LibSSH
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    libssl-dev \
+    zlib1g-dev \
+    wget \
+    tar
+
+# Download LibSSH 0.7.5 source code
+RUN wget https://www.libssh.org/files/0.7/libssh-0.7.5.tar.gz && \
+    tar -xzvf libssh-0.7.5.tar.gz && \
+    rm libssh-0.7.5.tar.gz
+
+# Build and install LibSSH
+WORKDIR /libssh-0.7.5
+RUN mkdir build && cd build && \
+    cmake .. && \
+    make && \
+    make install
+
+# Cleanup
+RUN rm -rf /libssh-0.7.5
+
+# Expose necessary ports if applicable
+# EXPOSE <port_number>
+
+# Define entry point or default command if needed
+# ENTRYPOINT [""executable""]"	"Source version tried to dowload libssh archive with wrong extension (was .tar.xz instead of .tar.gz) and used tar -xf to extract it, and again need to use ubuntu:16.04 to use correct library; 
+Didn’t expose port 22
+Too many configuration problem, linking and compiling issue
+
+
+Generic version need to use ubuntu:16.04 to use correct library; 
+Didn’t expose port 22
+Too many configuration problem, linking and compiling issue"
+Information Disclosure (https://nvd.nist.gov/vuln/detail/cve-2014-0160) CVE-2014-0160	Generate a dockerfile of apache2 with OpenSSL 1.0.1 before 1.0.1g	"FROM ubuntu:latest
+
+RUN apt-get update && apt-get install -y \
+    apache2 \
+    && apt-get install -y \
+    build-essential \
+    wget \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/local/src
+
+# Downloading OpenSSL 1.0.1 before version 1.0.1g
+RUN wget https://www.openssl.org/source/old/1.0.1/openssl-1.0.1e.tar.gz \
+    && tar -xzvf openssl-1.0.1e.tar.gz \
+    && rm openssl-1.0.1e.tar.gz
+
+WORKDIR /usr/local/src/openssl-1.0.1e
+
+# Configure, compile, and install OpenSSL
+RUN ./config \
+    && make \
+    && make install \
+    && ldconfig
+
+# Enable SSL module for Apache
+RUN a2enmod ssl
+
+EXPOSE 80
+EXPOSE 443
+
+CMD [""apachectl"", ""-D"", ""FOREGROUND""]"	Generate a dockerfile of apache2 with OpenSSL 1.0.1 before 1.0.1g building from source	"# Use a base image with necessary tools for building
+FROM ubuntu:latest
+
+# Install dependencies
+RUN apt-get update \
+    && apt-get install -y \
+       wget \
+       build-essential \
+       apache2 \
+       libssl-dev \
+       zlib1g-dev
+
+# Set the working directory
+WORKDIR /usr/src
+
+# Download OpenSSL 1.0.1f source code
+RUN wget https://www.openssl.org/source/old/1.0.1/openssl-1.0.1f.tar.gz \
+    && tar -xzf openssl-1.0.1f.tar.gz
+
+# Build and install OpenSSL 1.0.1f
+WORKDIR /usr/src/openssl-1.0.1f
+RUN ./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl \
+    && make \
+    && make install
+
+# Download Apache HTTP Server source code
+WORKDIR /usr/src
+RUN wget https://archive.apache.org/dist/httpd/httpd-2.4.51.tar.gz \
+    && tar -xzf httpd-2.4.51.tar.gz
+
+# Build and install Apache HTTP Server with OpenSSL 1.0.1f
+WORKDIR /usr/src/httpd-2.4.51
+RUN ./configure --with-ssl=/usr/local/ssl --prefix=/usr/local/apache2 \
+    && make \
+    && make install
+
+# Copy Apache configuration files
+COPY ./httpd.conf /usr/local/apache2/conf/httpd.conf
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache HTTP Server
+CMD [""/usr/local/apache2/bin/httpd"", ""-D"", ""FOREGROUND""]"	"Changed in both version the base image version (now ubuntu:16.04) and ""make install"" to ""make install_sw"" which don’t install man pages, becoming faster and removing some package dependencies error.
+
+
+Generic version built openssl but apache2 was already built with default openssl (not vulnerable)
+
+
+Source version building apache2 installed it before from apt manager, so removed it
+Needed ""libapr1-dev"",""libaprutil1-dev"" and ""libpcre3-dev"" to build apache2 and openssl
+Can’t go further, too complex compiling error"
+Code Injection (https://nvd.nist.gov/vuln/detail/CVE-2017-7494) CVE-2017-7494	Generate a dockerfile of Samba 4.x before 4.4.14	"# Use a base image with a suitable Linux distribution
+FROM debian:stretch
+
+# Install necessary packages
+RUN apt-get update && \
+    apt-get install -y samba=2:4.5.3+dfsg-2+deb9u2 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy configuration files
+COPY smb.conf /etc/samba/smb.conf
+
+# Expose Samba ports
+EXPOSE 137/udp 138/udp 139/tcp 445/tcp
+
+# Start Samba service
+CMD [""smbd"", ""--foreground"", ""--log-stdout""]"	Generate a dockerfile of Samba 4.x before 4.4.14 building from source	"# Use a base image with necessary dependencies for building
+FROM ubuntu:20.04
+
+# Install required dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    wget \
+    python \
+    python-dev \
+    python3 \
+    python3-dev \
+    libacl1-dev \
+    libattr1-dev \
+    libblkid-dev \
+    libgnutls28-dev \
+    libreadline-dev \
+    python3-dbg \
+    python-dbg \
+    python3-gpg \
+    python3-ldb \
+    liblmdb-dev \
+    python3-tdb \
+    python3-urllib3 \
+    python3-crypto \
+    python3-gpg \
+    libldap2-dev \
+    libpopt-dev \
+    python3-pyasn1 \
+    python3-dnspython \
+    libbsd-dev \
+    python3-dev \
+    python3-setuptools \
+    python3-cryptography \
+    python3-talloc \
+    gdb \
+    git \
+    pkg-config \
+    python3-dnspython \
+    libarchive-dev \
+    dnsutils \
+    acl \
+    attr \
+    krb5-config \
+    krb5-user \
+    docbook-xml \
+    docbook-xsl \
+    xsltproc \
+    docbook5-xml \
+    docbook-xsl-ns \
+    libjson-perl \
+    xmlto \
+    rsync \
+    systemd
+
+# Download and extract the Samba source code
+RUN wget https://download.samba.org/pub/samba/samba-4.5.3.tar.gz && \
+    tar -xzvf samba-4.5.3.tar.gz && \
+    cd samba-4.5.3
+
+# Configure and build Samba
+RUN cd samba-4.5.3 && \
+    ./configure && \
+    make && \
+    make install
+
+# Expose the default Samba ports
+EXPOSE 137/udp 138/udp 139/tcp 445/tcp
+
+# Start Samba service
+CMD [""/usr/local/samba/sbin/smbd"", ""--foreground"", ""--no-process-group""]"	"Generic version had a copy configuration command not needed,  can’t go further because different version don’t exist on the package manager apt, even on older and different distro (ubunut:16.04 or Debian)
+
+Source version dowloaded a lot of package to build samba, so opted to use dependencies from samba site
+Added samba bin and sbin to path
+Samba doesn’t provide default configuration file, so we imported base one from GitHub (we also created a custom user)"
+Path Traversal (https://nvd.nist.gov/vuln/detail/CVE-2023-38633) CVE-2023-38633	Create a dockerfile of C program asking the user a path for an svg file using librsvg 2.56.2	"# Use the official Ubuntu base image
+FROM ubuntu:latest
+
+# Update packages and install necessary dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libc6-dev \
+    librsvg2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Copy the source code into the container
+COPY . .
+
+# Compile the C program
+RUN gcc -o svg_processor svg_processor.c -lrsvg-2
+
+# Set the entry point for the container
+CMD [""./svg_processor""]"	Create a dockerfile of C program asking the user a path for an svg file using librsvg 2.56.2 building from source	"# Use a base image with necessary development tools and libraries
+FROM ubuntu:latest
+
+# Install necessary packages for building librsvg and running the C program
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    pkg-config \
+    libglib2.0-dev \
+    libcairo2-dev \
+    libxml2-dev \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone librsvg from source
+RUN git clone --branch v2.56.2 --depth 1 https://gitlab.gnome.org/GNOME/librsvg.git /librsvg
+
+# Build and install librsvg
+RUN cd /librsvg && \
+    ./autogen.sh && \
+    make && \
+    make install
+
+# Create a directory for your C program
+RUN mkdir /app
+WORKDIR /app
+
+# Copy your C source code into the container
+COPY main.c /app/
+
+# Compile the C program
+RUN gcc -o program main.c $(pkg-config --cflags --libs librsvg-2.0)
+
+# Set the entry point to your program
+ENTRYPOINT [""./program""]"	"Generic version needed to add `pkg-config --cflags --libs librsvg-2.0` to link svg library
+Hard to make it work too difficult the API documentation
+
+Source git branch is ""2.56.2"" rather than ""v2.56.2""
+Missing ""aclocal"" for autogen.sh, therefore installed: dh-autoreconf gobject-introspection libgirepository1.0-dev cargo libgdk-pixbuf2.0-dev libharfbuzz-dev libpango1.0-dev
+to use ""autoreconf -f -I"" to build and compile
+Added enviroment variable PATH ""${PATH}:/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0"" in order to have gdk-pixbuf-query-loaders in path
+Added ""ldconfig"" after make install to link shared library (.so)"
+OS Command Injection (https://nvd.nist.gov/vuln/detail/cve-2017-17405) CVE-2017-17405	Generate a dockerfile of Ruby before 2.4.3	"# Use an official Ruby runtime as the base image
+FROM ruby:2.4.2
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the Gemfile and Gemfile.lock from your project directory into the container
+COPY Gemfile Gemfile.lock ./
+
+# Install dependencies
+RUN bundle install
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Define environment variables for the application
+ENV RAILS_ENV=production
+
+# Expose port 3000 to the outside world
+EXPOSE 3000
+
+# Command to run the application
+CMD [""rails"", ""server"", ""-b"", ""0.0.0.0""]"	Generate a dockerfile of Ruby before 2.4.3 bulding from source	"# Use a base image with necessary dependencies
+FROM ubuntu:latest
+
+# Install build dependencies
+RUN apt-get update \
+    && apt-get install -y \
+        build-essential \
+        curl \
+        git \
+        libssl-dev \
+        libreadline-dev \
+        zlib1g-dev \
+        libsqlite3-dev \
+        sqlite3 \
+        libxml2-dev \
+        libxslt1-dev \
+        libyaml-dev \
+        libffi-dev \
+        libgdbm-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables for Ruby
+ENV RUBY_MAJOR 2.4
+ENV RUBY_VERSION 2.4.2
+ENV RUBY_DOWNLOAD_SHA256 71aadb46887a1bc73a07b8df7b9f98e835ed5b627c2f50d7b8e8671d69f96a34
+ENV RUBY_DIR /usr/src/ruby
+
+# Install Ruby from source
+RUN mkdir -p $RUBY_DIR \
+    && curl -SL ""https://cache.ruby-lang.org/pub/ruby/$RUBY_MAJOR/ruby-$RUBY_VERSION.tar.gz"" -o ruby.tar.gz \
+    && echo ""$RUBY_DOWNLOAD_SHA256 *ruby.tar.gz"" | sha256sum -c - \
+    && tar -xzf ruby.tar.gz -C $RUBY_DIR --strip-components=1 \
+    && rm ruby.tar.gz \
+    && cd $RUBY_DIR \
+    && ./configure --disable-install-doc \
+    && make -j ""$(nproc)"" \
+    && make install \
+    && rm -r $RUBY_DIR
+
+# Verify Ruby installation
+RUN ruby --version
+
+# Set gem environment variables
+ENV GEM_HOME /usr/local/bundle
+ENV PATH $GEM_HOME/bin:$PATH
+RUN gem install bundler
+
+# Create a directory for the application code
+WORKDIR /app
+
+# Copy the Gemfile and Gemfile.lock into the image
+COPY Gemfile Gemfile.lock ./
+
+# Install Ruby dependencies
+RUN bundle install
+
+# Copy the application code into the image
+COPY . .
+
+# Start the application
+CMD [""ruby"", ""app.rb""]"	"Generic version tried to install and copy packages and directory not needed, tried to start a rail project even if wasn’t asked to do so
+
+Source version tried to install and copy packages and directory not needed
+SHA256 was incorrect, find right one on https://www.ruby-lang.org/en/news/2017/09/14/ruby-2-4-2-released/
+Too complex debugging build"
+OS Command Injection (https://nvd.nist.gov/vuln/detail/cve-2014-6271) CVE-2014-6271	Generate a dockerfile of Bash 4.3.0	"# Use Ubuntu 18.04 as the base image
+FROM ubuntu:18.04
+
+# Update package lists
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and extract Bash 4.3.0
+RUN wget https://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz && \
+    tar -xzvf bash-4.3.tar.gz
+
+# Navigate into the extracted directory
+WORKDIR /bash-4.3
+
+# Configure, make, and install Bash
+RUN ./configure && \
+    make && \
+    make install
+
+# Clean up downloaded and temporary files
+RUN rm -rf /bash-4.3 && \
+    rm -f /bash-4.3.tar.gz
+
+# Set the default command to run Bash
+CMD [""bash""]"	Generate a dockerfile of Bash 4.3.0 building from source	"# Use a base image with development tools
+FROM ubuntu:latest
+
+# Install necessary packages to build Bash from source
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    curl \
+    tar \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download Bash source code
+WORKDIR /usr/src
+RUN wget http://ftp.gnu.org/gnu/bash/bash-4.3.tar.gz && \
+    tar -xzvf bash-4.3.tar.gz
+
+# Build and install Bash
+WORKDIR /usr/src/bash-4.3
+RUN ./configure && \
+    make && \
+    make install
+
+# Cleanup
+WORKDIR /
+RUN rm -rf /usr/src/bash-4.3 && \
+    rm -f /usr/src/bash-4.3.tar.gz
+
+# Set Bash as the default shell
+RUN ln -sf /usr/local/bin/bash /bin/bash
+
+# Run Bash shell
+CMD [""/bin/bash""]"	"Both version can’t use ""bash"" as entrypoint or the container shut down immediately
+
+"
+OS Command Injection (https://nvd.nist.gov/vuln/detail/CVE-2020-7247) CVE-2020-7247	Generate a dockerfile of OpenSMTPD 6.6	"# Use a Debian base image
+FROM debian:buster-slim
+
+# Install necessary packages
+RUN apt-get update && \
+    apt-get install -y opensmtpd
+
+# Copy the configuration files
+COPY opensmtpd.conf /etc/smtpd.conf
+
+# Expose SMTP port
+EXPOSE 25
+
+# Start OpenSMTPD
+CMD [""smtpd"", ""-d""]"	Generate a dockerfile of OpenSMTPD 6.6 building from source	"# Use a base image with the necessary tools and libraries
+FROM alpine:latest
+
+# Install required packages
+RUN apk add --no-cache \
+    build-base \
+    libressl-dev \
+    ca-certificates \
+    wget \
+    gnupg \
+    libasr-dev \
+    libevent-dev \
+    libtool \
+    autoconf \
+    automake \
+    gettext \
+    db-dev \
+    mariadb-dev \
+    postgresql-dev \
+    sqlite-dev \
+    libressl \
+    curl-dev \
+    cyrus-sasl-dev \
+    linux-pam-dev \
+    gmake
+
+# Download OpenSMTPD source code
+RUN wget https://github.com/OpenSMTPD/OpenSMTPD/archive/refs/tags/opensmtpd-6.6.4p1.tar.gz && \
+    tar -zxvf opensmtpd-6.6.4p1.tar.gz && \
+    rm -f opensmtpd-6.6.4p1.tar.gz
+
+WORKDIR /OpenSMTPD-opensmtpd-6.6.4p1
+
+# Configure, build and install OpenSMTPD
+RUN ./bootstrap && \
+    ./configure && \
+    make && \
+    make install
+
+# Clean up unnecessary packages and files
+RUN apk del build-base \
+    libressl-dev \
+    wget \
+    gnupg \
+    libasr-dev \
+    libevent-dev \
+    libtool \
+    autoconf \
+    automake \
+    gettext \
+    db-dev \
+    mariadb-dev \
+    postgresql-dev \
+    sqlite-dev \
+    libressl \
+    curl-dev \
+    cyrus-sasl-dev \
+    linux-pam-dev \
+    gmake && \
+    rm -rf /var/cache/apk/* && \
+    rm -rf /OpenSMTPD-opensmtpd-6.6.4p1
+
+# Expose SMTP port
+EXPOSE 25
+
+# Run OpenSMTPD
+CMD [""smtpd"", ""-dv""]"	"Generic version needed some configuration change to work, but apt install 6.0.3 version
+
+Source version dowloaded wrong version and wrong workdir folder
+Missing ""fts-dev"" and ""byacc"" packages installed from apk
+Missing  libasr"" package, but the latter is deprecated and dismissed, so it must be dowloaded and built from OpneSMTPD side
+Removed downloading and removing of two packages: libasr (dowloaded from source) and gmake (it’s a part of make package
+Added two user _smtpq and _smtpd
+Modifying smtpd.conf as needed and the exploit works"
+Improper Authentication (https://nvd.nist.gov/vuln/detail/CVE-2012-2122) CVE-2012-2122	Generate a dockerfile of MySQL Server 5.6.5	"# Use the official MySQL 5.6.5 image from Docker Hub
+FROM mysql:5.6.5
+
+# Environment variables
+ENV MYSQL_ROOT_PASSWORD=root_password
+ENV MYSQL_DATABASE=my_database
+ENV MYSQL_USER=my_user
+ENV MYSQL_PASSWORD=my_password
+
+# Copy custom configuration file
+COPY my.cnf /etc/mysql/my.cnf"	Generate a dockerfile of MySQL Server 5.6.5 building from source	"# Use a base image with necessary build tools
+FROM ubuntu:20.04
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    bison \
+    git \
+    libncurses5-dev \
+    libssl-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone MySQL source from GitHub
+RUN git clone --depth=1 --branch mysql-5.6.5 https://github.com/mysql/mysql-server.git /mysql
+
+# Build MySQL Server
+WORKDIR /mysql
+RUN cmake . && make && make install
+
+# Cleanup
+RUN rm -rf /mysql
+
+# Expose MySQL port
+EXPOSE 3306
+
+# Set default command to run MySQL Server
+CMD [""mysqld""]"	"Generic version can’t be used due to base docker image not built on docker hub (probably too old)
+
+Source version need following instruction on mysql installation guide: libbost package, mysql group and user, mysql file folder with right permission, inizialitation
+Old version of bison to resolve cmake deprecated error for old macro, so downloaded .deb with wget and installed with dpkg
+Need ' -DCMAKE_CXX_FLAGS=""-std=c++03"" ' flag on cmake to make it retro compatible"
+Path Traversal (https://nvd.nist.gov/vuln/detail/CVE-2018-3760) CVE-2018-3760	Generate a dockerfile of Sprockets 3.7.1	"# Use Ruby 2.7 as the base image
+FROM ruby:2.7
+
+# Install necessary dependencies
+RUN apt-get update -qq && apt-get install -y \
+    build-essential \
+    nodejs \
+ && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the Gemfile and Gemfile.lock into the container
+COPY Gemfile Gemfile.lock ./
+
+# Install gems
+RUN gem install bundler && bundle install
+
+# Install Sprockets version 3.7.1
+RUN gem install sprockets -v '3.7.1'
+
+# Expose port 3000 to the Docker host, so we can access our Rails app
+EXPOSE 3000
+
+# Start the Rails server when the container starts
+CMD [""rails"", ""server"", ""-b"", ""0.0.0.0""]"	Generate a dockerfile of Sprockets 3.7.1 building from source	"# Use a Ruby base image
+FROM ruby:2.7
+
+# Install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    git \
+    nodejs
+
+# Clone Sprockets from GitHub
+RUN git clone --branch v3.7.1 --depth 1 https://github.com/rails/sprockets.git /sprockets
+
+# Set working directory
+WORKDIR /sprockets
+
+# Install Sprockets
+RUN bundle install
+
+# Expose any ports the app is expecting
+EXPOSE 3000
+
+# Command to run the application
+CMD [""bundle"", ""exec"", ""rackup"", ""--host"", ""0.0.0.0"", ""--port"", ""3000""]"	"Generic version tried to install and copy packages and directory not needed, tried to start a rail project even if wasn’t asked to do so
+
+Source version used a non-existing branch on GitHub, opted for wget the tar.gz release package
+Too many difficult setup process, mixing bundle, gemfile, local installation, rails and rackup"
+Integer Owerflow (https://nvd.nist.gov/vuln/detail/CVE-2017-7529) CVE-2017-7529	Generate a dockerfile of Nginx 1.13.2	"# Use the official Nginx image as the base image
+FROM nginx:1.13.2
+
+# Optionally, you can include additional configuration or customization here
+# For instance, copying custom nginx.conf
+# COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose ports
+EXPOSE 80
+EXPOSE 443
+
+# Command to run Nginx when the container starts
+CMD [""nginx"", ""-g"", ""daemon off;""]"	Generate a dockerfile of nginx 1.13.2 building from source	"# Use a base image with necessary tools for building nginx
+FROM ubuntu:latest
+
+# Install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    wget \
+    build-essential \
+    libpcre3 \
+    libpcre3-dev \
+    zlib1g-dev \
+    openssl \
+    libssl-dev
+
+# Download nginx source
+RUN wget http://nginx.org/download/nginx-1.13.2.tar.gz && \
+    tar -xzvf nginx-1.13.2.tar.gz && \
+    rm nginx-1.13.2.tar.gz
+
+# Change directory to nginx source
+WORKDIR /nginx-1.13.2
+
+# Configure nginx
+RUN ./configure --prefix=/usr/local/nginx --with-http_ssl_module
+
+# Build nginx
+RUN make
+
+# Install nginx
+RUN make install
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx when container starts
+CMD [""/usr/local/nginx/sbin/nginx"", ""-g"", ""daemon off;""]"	"Generic version worked without any fix or configuration
+
+Source version used old function deprecated and non-existing, so used env cflags to ignore deprecated declarations and replaced every occurence of the parameter ""current_salt"" with the newer and correct version ""output"" using find and sed commands"
+Path Traversal (https://nvd.nist.gov/vuln/detail/CVE-2017-14849) CVE-2017-14849	Generate a dockerfile of Node 8.5.0 using package and package-lock	"# Use official Node.js 8.5.0 image as base
+FROM node:8.5.0
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Command to run the application
+CMD [""npm"", ""start""]"		"# Use the official node image with version 8.5.0 as the base image
+FROM node:8.5.0
+
+# Set a working directory inside the container
+WORKDIR /app
+
+# Copy the package.json and package-lock.json files into the container
+COPY package.json .
+COPY package-lock.json .
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code into the container
+COPY . .
+
+# Expose the port the app runs on
+EXPOSE 3000
+
+# Command to run the application
+CMD [""npm"", ""start""]"	"Although source and generic version prompt were different as always, response was almost the same so it will evaluated only one
+No further configuration required, it works as generated, need just some package and javascript setup, but it depends on the project"
+Code Injection (https://nvd.nist.gov/vuln/detail/CVE-2017-16082) Code Injection	Generate a dockerfile of Node 9.0.0 with a postegreSQL database	"# Use official Node.js 9.0.0 image as base
+FROM node:9.0.0
+
+# Set working directory within the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json to the working directory
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install
+
+# Install PostgreSQL
+RUN apt-get update && apt-get install -y postgresql postgresql-contrib
+
+# Expose PostgreSQL port
+EXPOSE 5432
+
+# Copy the rest of the application code
+COPY . .
+
+# Command to start the application
+CMD [""npm"", ""start""]"	Generate a dockerfile of Node 9.0.0 with a postegreSQL database building from source	"# Use Ubuntu 18.04 as the base image
+FROM ubuntu:18.04
+
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    build-essential \
+    ca-certificates \
+    libreadline-dev \
+    zlib1g-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxml2-utils \
+    libxml2-dev \
+    libxslt-dev \
+    libperl-dev \
+    python3 \
+    python3-pip \
+    llvm \
+    libllvm-ocaml-dev \
+    libxml2-dev \
+    libssl-dev \
+    zlib1g-dev \
+    libpam0g-dev \
+    libedit-dev \
+    libbsd-dev \
+    build-essential \
+    bison \
+    flex \
+    git \
+    cmake \
+    ninja-build \
+    libtool \
+    pkg-config \
+    sudo \
+    vim \
+    curl \
+    lsb-release \
+    gnupg \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 9.0.0
+RUN curl -sL https://deb.nodesource.com/setup_9.x | bash -
+RUN apt-get install -y nodejs
+
+# Download PostgreSQL source
+RUN wget https://ftp.postgresql.org/pub/source/v13.2/postgresql-13.2.tar.gz
+
+# Unpack the source code
+RUN tar xfz postgresql-13.2.tar.gz
+
+# Change directory to the postgresql source
+WORKDIR /postgresql-13.2
+
+# Configure, make, and install PostgreSQL
+RUN ./configure && make && make install
+
+# Add PostgreSQL bin directory to PATH
+ENV PATH=""/usr/local/pgsql/bin:${PATH}""
+
+# Expose PostgreSQL default port
+EXPOSE 5432
+
+# Set the default command to run when starting the container
+CMD [""postgres""]"	"Generic version needed some tweaks like update sources.list of archived Debian repository
+Added initialization of database and table of postegreSQL
+Dowloaded and used as CMD wait-for-it script to wait for postegresql process and only then start the npm process
+
+Source version had just one package in apt install which didn’t exist, therefore it compiled and runned without any problem, same step as generic version"
+OS Command Injection (https://nvd.nist.gov/vuln/detail/CVE-2019-9193) CVE-2019-9193	Generate a dockerfile of PostgreSQL before 11.2	"# Use the official PostgreSQL 11.1 image
+FROM postgres:11.1
+
+# Optionally, set environment variables
+ENV POSTGRES_USER postgres
+ENV POSTGRES_PASSWORD password
+ENV POSTGRES_DB mydatabase
+
+# Optionally, copy a custom configuration file from the current directory
+# COPY postgresql.conf /etc/postgresql/postgresql.conf
+
+# Expose the PostgreSQL port
+EXPOSE 5432
+
+# Run PostgreSQL when the container starts
+CMD [""postgres""]"	Generate a dockerfile of PostgreSQL before 11.2 building from source	"# Use a base image with necessary dependencies
+FROM ubuntu:20.04
+
+# Update package list and install necessary tools
+RUN apt-get update && \
+    apt-get install -y wget build-essential git
+
+# Create a directory for PostgreSQL source code
+WORKDIR /opt
+
+# Clone PostgreSQL source code from the official repository
+RUN git clone --branch REL_11_2 --depth 1 https://github.com/postgres/postgres.git
+
+# Change to PostgreSQL source code directory
+WORKDIR /opt/postgres
+
+# Configure, build and install PostgreSQL
+RUN ./configure && \
+    make && \
+    make install
+
+# Expose PostgreSQL port
+EXPOSE 5432
+
+# Initialize a directory for data storage
+RUN mkdir -p /var/lib/postgresql/data
+
+# Set permissions for data directory
+RUN chown -R postgres:postgres /var/lib/postgresql/data
+
+# Switch to postgres user
+USER postgres
+
+# Initialize the database cluster
+RUN /usr/local/pgsql/bin/initdb -D /var/lib/postgresql/data
+
+# Start PostgreSQL server
+CMD [""/usr/local/pgsql/bin/postgres"", ""-D"", ""/var/lib/postgresql/data"", ""-c"", ""config_file=/usr/local/pgsql/postgresql.conf""]"	"Generic version work as required without problem
+
+Source version used branch 11.2 instead of 11.1 (or at least ""before 11.2"" as required)
+Required to install these package: libreadline-dev, zlib1g-dev, bison; to build postgreSQLRequired Postgres user and group
+Required to change default user password of the database, therefore start the service, execute the query and stop the service again
+Require to change pg_hba.conf to enable connection from outside local enviroment
+"
+Improper Access Control (https://www.exploit-db.com/exploits/49908) CVE-2015-3306	Generate a dockerfile of ProFTPd 1.3.5 with mod_copy enabled	"# Use a base image with ProFTPD dependencies
+FROM debian:bullseye
+
+LABEL maintainer=""Your Name <your.email@example.com>""
+
+# Install required packages
+RUN apt-get update && \
+    apt-get install -y proftpd-basic proftpd-mod-copy && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy ProFTPD configuration file with mod_copy module enabled
+COPY proftpd.conf /etc/proftpd/
+
+# Expose ports (you may want to adjust these based on your ProFTPD configuration)
+EXPOSE 20 21
+
+# Start ProFTPD in foreground
+CMD [""proftpd"", ""--nodaemon""]"	Generate a dockerfile of ProFTPd 1.3.5 with mod_copy enabled building from source	"# Use a base image with the necessary dependencies to build ProFTPd from source
+FROM debian:buster AS builder
+
+# Install build dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    wget \
+    libncurses-dev \
+    libssl-dev \
+    libpam0g-dev \
+    zlib1g-dev \
+    libwrap0-dev \
+    libcap-dev \
+    libmysqlclient-dev \
+    libldap2-dev \
+    libpq-dev \
+    libsqlite3-dev
+
+# Download and extract ProFTPd source
+WORKDIR /tmp
+RUN wget ftp://ftp.proftpd.org/distrib/source/proftpd-1.3.5.tar.gz && \
+    tar -zxvf proftpd-1.3.5.tar.gz
+
+# Build ProFTPd with mod_copy
+WORKDIR /tmp/proftpd-1.3.5
+RUN ./configure --with-modules=mod_copy && \
+    make && \
+    make install
+
+# Start a new image
+FROM debian:buster
+
+# Install runtime dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    libssl1.1 \
+    libpam0g \
+    libwrap0 \
+    libcap2 \
+    libmysqlclient21 \
+    libldap-2.4-2 \
+    libpq5 \
+    libsqlite3-0
+
+# Copy ProFTPd binaries and configuration files from builder image
+COPY --from=builder /usr/local/sbin/proftpd /usr/local/sbin/
+COPY --from=builder /usr/local/libexec/proftpd /usr/local/libexec/
+COPY --from=builder /usr/local/etc/proftpd.conf /usr/local/etc/
+
+# Expose FTP ports
+EXPOSE 20 21
+
+# Run ProFTPd
+CMD [""/usr/local/sbin/proftpd"", ""--nodaemon""]"	"Generic version tried to install mod_copy from apt sources, but it has to be built with proFTPD or with prxs tool and mod_copy source code
+Wrong version on apt, 1.3.5 version doesn’t exist
+
+Source version building dependencies have some problem: libmysqlclient-dev is replaced by libmariadb-dev, libmysqlclient21 doens’t exist in this Debian version
+Disabled mod_delay giving error
+Created user and group in both image (builder and final one)
+Strange error : error opening scoreboard: Operation not permitted"

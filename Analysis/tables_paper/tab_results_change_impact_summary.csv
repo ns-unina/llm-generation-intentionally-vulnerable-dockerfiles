@@ -1,0 +1,5 @@
+Scenario,% C0,% C1,% C2,Median Total Impact
+Services – Package,19.0,28.6,52.4,6.0
+Services – Source,18.2,54.5,27.3,5.0
+Webapps – Compose,8.7,60.9,30.4,8.5
+Webapps – Bundle,15.8,47.4,36.8,9.0

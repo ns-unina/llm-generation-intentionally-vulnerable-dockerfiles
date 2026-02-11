@@ -1,0 +1,9 @@
+Scenario,Compile %,Run %,Exploit %
+Services – Bundle,0.0,0.0,0.0
+Services – Compose,0.0,0.0,0.0
+Services – Package,69.23,46.15,7.69
+Services – Source,61.54,46.15,7.69
+Web – Bundle,20.0,20.0,0.0
+Web – Compose,57.14,57.14,28.57
+Web – Package,0.0,0.0,0.0
+Web – Source,0.0,0.0,0.0

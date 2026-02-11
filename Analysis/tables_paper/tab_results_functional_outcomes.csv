@@ -1,0 +1,6 @@
+Category,Build Success (%),Run Success (%),Exploit Success (%)
+Overall,57.9,44.7,10.5
+Services Package,69.2,46.2,7.7
+Services Source,61.5,46.2,7.7
+Web Compose,57.1,57.1,28.6
+Web Bundle,20.0,20.0,0.0
