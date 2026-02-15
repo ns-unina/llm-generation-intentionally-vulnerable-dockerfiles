@@ -29,14 +29,17 @@ def generate_functional_outcomes_table(df_summary, out_dir: Path, warnings):
     # Overall success rates
     total = len(df_summary)
     if total > 0:
-        build_pct = (df_summary["compile"].sum() / total) * 100
-        run_pct = (df_summary["run"].sum() / total) * 100
-        exploit_pct = (df_summary["exploit"].sum() / total) * 100
+        build_count = df_summary["compile"].sum()
+        run_count = df_summary["run"].sum()
+        exploit_count = df_summary["exploit"].sum()
+        build_pct = (build_count / total) * 100
+        run_pct = (run_count / total) * 100
+        exploit_pct = (exploit_count / total) * 100
         results.append({
             "Category": "Overall",
-            "Build Success (%)": round(build_pct, 1),
-            "Run Success (%)": round(run_pct, 1),
-            "Exploit Success (%)": round(exploit_pct, 1),
+            "Build Success": f"{build_count}/{total} ({build_pct:.1f}%)",
+            "Run Success": f"{run_count}/{total} ({run_pct:.1f}%)",
+            "Exploit Success": f"{exploit_count}/{total} ({exploit_pct:.1f}%)",
         })
     
     # Services breakdowns
@@ -44,14 +47,18 @@ def generate_functional_outcomes_table(df_summary, out_dir: Path, warnings):
     for type_name in ["Package", "Source"]:
         subset = services_df[services_df["type"].str.lower() == type_name.lower()]
         if len(subset) > 0:
-            build_pct = (subset["compile"].sum() / len(subset)) * 100
-            run_pct = (subset["run"].sum() / len(subset)) * 100
-            exploit_pct = (subset["exploit"].sum() / len(subset)) * 100
+            total_sub = len(subset)
+            build_count = subset["compile"].sum()
+            run_count = subset["run"].sum()
+            exploit_count = subset["exploit"].sum()
+            build_pct = (build_count / total_sub) * 100
+            run_pct = (run_count / total_sub) * 100
+            exploit_pct = (exploit_count / total_sub) * 100
             results.append({
                 "Category": f"Services {type_name}",
-                "Build Success (%)": round(build_pct, 1),
-                "Run Success (%)": round(run_pct, 1),
-                "Exploit Success (%)": round(exploit_pct, 1),
+                "Build Success": f"{build_count}/{total_sub} ({build_pct:.1f}%)",
+                "Run Success": f"{run_count}/{total_sub} ({run_pct:.1f}%)",
+                "Exploit Success": f"{exploit_count}/{total_sub} ({exploit_pct:.1f}%)",
             })
     
     # Web breakdowns
@@ -59,14 +66,18 @@ def generate_functional_outcomes_table(df_summary, out_dir: Path, warnings):
     for type_name in ["Compose", "Bundle"]:
         subset = web_df[web_df["type"].str.lower() == type_name.lower()]
         if len(subset) > 0:
-            build_pct = (subset["compile"].sum() / len(subset)) * 100
-            run_pct = (subset["run"].sum() / len(subset)) * 100
-            exploit_pct = (subset["exploit"].sum() / len(subset)) * 100
+            total_sub = len(subset)
+            build_count = subset["compile"].sum()
+            run_count = subset["run"].sum()
+            exploit_count = subset["exploit"].sum()
+            build_pct = (build_count / total_sub) * 100
+            run_pct = (run_count / total_sub) * 100
+            exploit_pct = (exploit_count / total_sub) * 100
             results.append({
                 "Category": f"Web {type_name}",
-                "Build Success (%)": round(build_pct, 1),
-                "Run Success (%)": round(run_pct, 1),
-                "Exploit Success (%)": round(exploit_pct, 1),
+                "Build Success": f"{build_count}/{total_sub} ({build_pct:.1f}%)",
+                "Run Success": f"{run_count}/{total_sub} ({run_pct:.1f}%)",
+                "Exploit Success": f"{exploit_count}/{total_sub} ({exploit_pct:.1f}%)",
             })
     
     if not results:
@@ -107,14 +118,18 @@ def generate_success_rate_per_strategy_table(df_summary, out_dir: Path, warnings
     for type_name in ["Package", "Source"]:
         subset = services_df[services_df["type"].str.lower() == type_name.lower()]
         if len(subset) > 0:
-            build_pct = (subset["compile"].sum() / len(subset)) * 100
-            run_pct = (subset["run"].sum() / len(subset)) * 100
-            exploit_pct = (subset["exploit"].sum() / len(subset)) * 100
+            total_sub = len(subset)
+            build_count = subset["compile"].sum()
+            run_count = subset["run"].sum()
+            exploit_count = subset["exploit"].sum()
+            build_pct = (build_count / total_sub) * 100
+            run_pct = (run_count / total_sub) * 100
+            exploit_pct = (exploit_count / total_sub) * 100
             results.append({
                 "Scenario": f"Services – {type_name}",
-                "Build %": round(build_pct, 1),
-                "Run %": round(run_pct, 1),
-                "Exploit %": round(exploit_pct, 1),
+                "Build": f"{build_count}/{total_sub} ({build_pct:.1f}%)",
+                "Run": f"{run_count}/{total_sub} ({run_pct:.1f}%)",
+                "Exploit": f"{exploit_count}/{total_sub} ({exploit_pct:.1f}%)",
             })
     
     # Webapps breakdowns - try Source first, then Bundle, then Compose
@@ -122,14 +137,18 @@ def generate_success_rate_per_strategy_table(df_summary, out_dir: Path, warnings
     for type_name in ["Compose", "Source", "Bundle"]:
         subset = web_df[web_df["type"].str.lower() == type_name.lower()]
         if len(subset) > 0:
-            build_pct = (subset["compile"].sum() / len(subset)) * 100
-            run_pct = (subset["run"].sum() / len(subset)) * 100
-            exploit_pct = (subset["exploit"].sum() / len(subset)) * 100
+            total_sub = len(subset)
+            build_count = subset["compile"].sum()
+            run_count = subset["run"].sum()
+            exploit_count = subset["exploit"].sum()
+            build_pct = (build_count / total_sub) * 100
+            run_pct = (run_count / total_sub) * 100
+            exploit_pct = (exploit_count / total_sub) * 100
             results.append({
                 "Scenario": f"Webapps – {type_name}",
-                "Build %": round(build_pct, 1),
-                "Run %": round(run_pct, 1),
-                "Exploit %": round(exploit_pct, 1),
+                "Build": f"{build_count}/{total_sub} ({build_pct:.1f}%)",
+                "Run": f"{run_count}/{total_sub} ({run_pct:.1f}%)",
+                "Exploit": f"{exploit_count}/{total_sub} ({exploit_pct:.1f}%)",
             })
     
     if not results:
@@ -193,9 +212,9 @@ def generate_change_impact_summary_table(df, agg, out_dir: Path, warnings):
             
             results.append({
                 "Scenario": f"Services – {type_name}",
-                "% C0": round(c0_pct, 1),
-                "% C1": round(c1_pct, 1),
-                "% C2": round(c2_pct, 1),
+                "C0": f"{c0_count}/{total_count} ({c0_pct:.1f}%)",
+                "C1": f"{c1_count}/{total_count} ({c1_pct:.1f}%)",
+                "C2": f"{c2_count}/{total_count} ({c2_pct:.1f}%)",
                 "Median Total Impact": round(median_impact, 1),
             })
     
@@ -223,9 +242,9 @@ def generate_change_impact_summary_table(df, agg, out_dir: Path, warnings):
             
             results.append({
                 "Scenario": f"Webapps – {type_name}",
-                "% C0": round(c0_pct, 1),
-                "% C1": round(c1_pct, 1),
-                "% C2": round(c2_pct, 1),
+                "C0": f"{c0_count}/{total_count} ({c0_pct:.1f}%)",
+                "C1": f"{c1_count}/{total_count} ({c1_pct:.1f}%)",
+                "C2": f"{c2_count}/{total_count} ({c2_pct:.1f}%)",
                 "Median Total Impact": round(median_impact, 1),
             })
     
@@ -290,9 +309,9 @@ def generate_automation_summary_table(df, agg, out_dir: Path, warnings):
             
             results.append({
                 "Scenario": f"Services – {type_name}",
-                "% A0": round(a0_pct, 1),
-                "% A1": round(a1_pct, 1),
-                "% A2": round(a2_pct, 1),
+                "A0": f"{a0_count}/{total_count} ({a0_pct:.1f}%)",
+                "A1": f"{a1_count}/{total_count} ({a1_pct:.1f}%)",
+                "A2": f"{a2_count}/{total_count} ({a2_pct:.1f}%)",
                 "Median Total Automation": round(median_automation, 1),
             })
     
@@ -320,9 +339,9 @@ def generate_automation_summary_table(df, agg, out_dir: Path, warnings):
             
             results.append({
                 "Scenario": f"Webapps – {type_name}",
-                "% A0": round(a0_pct, 1),
-                "% A1": round(a1_pct, 1),
-                "% A2": round(a2_pct, 1),
+                "A0": f"{a0_count}/{total_count} ({a0_pct:.1f}%)",
+                "A1": f"{a1_count}/{total_count} ({a1_pct:.1f}%)",
+                "A2": f"{a2_count}/{total_count} ({a2_pct:.1f}%)",
                 "Median Total Automation": round(median_automation, 1),
             })
     
@@ -386,8 +405,7 @@ def generate_quadrant_occupancy_table(agg, out_dir: Path, warnings):
         percentage = (count / total_cves * 100) if total_cves > 0 else 0
         results.append({
             "Quadrant": quadrant,
-            "# CVEs": count,
-            "%": round(percentage, 1),
+            "CVEs": f"{count}/{total_cves} ({percentage:.1f}%)",
         })
     
     # Create DataFrame and save
@@ -400,12 +418,12 @@ def generate_quadrant_occupancy_table(agg, out_dir: Path, warnings):
 
 def generate_paired_comparison_summary_table(agg, out_dir: Path, warnings):
     """
-    Generate table with paired comparison summary (Package vs Source).
+    Generate combined table with paired comparison summary for Services and Web.
     
-    Table structure (Table 5 — Paired comparison summary):
-    - Rows: Median, Mean
-    - Columns: Metric, Package (Impact), Source (Impact), Δ Change impact, 
-               Package (Automation), Source (Automation), Δ Automation challenge
+    Table structure:
+    - Rows: Change Impact (Source vs Package), Change Impact (Bundle vs Compose),
+            Automatic Challenge (Source vs Package), Automatic Challenge (Bundle vs Compose)
+    - Columns: Metric, Scenario 1, Scenario 2, Mean, Median, Delta (Mean/Median)
     """
     if agg.empty:
         warnings.append("No aggregated data for paired comparison summary table.")
@@ -418,76 +436,87 @@ def generate_paired_comparison_summary_table(agg, out_dir: Path, warnings):
         warnings.append(f"Missing columns for paired comparison summary table: {', '.join(missing)}")
         return None
     
-    # Filter for Services dataset
-    services_agg = agg[agg["dataset"].str.lower() == "services"].copy()
-    
-    # Find CVEs that have both Package and Source
-    package_cves = set(services_agg[services_agg["type"].str.lower() == "package"]["cve_id"])
-    source_cves = set(services_agg[services_agg["type"].str.lower() == "source"]["cve_id"])
-    paired_cves = package_cves & source_cves
-    
-    if not paired_cves:
-        warnings.append("No paired CVEs (Package + Source) found for paired comparison summary.")
-        # Try Web dataset as fallback
-        web_agg = agg[agg["dataset"].str.lower() == "web"].copy()
-        compose_cves = set(web_agg[web_agg["type"].str.lower() == "compose"]["cve_id"])
-        bundle_cves = set(web_agg[web_agg["type"].str.lower() == "bundle"]["cve_id"])
-        paired_cves = compose_cves & bundle_cves
-        
-        if not paired_cves:
-            warnings.append("No paired CVEs found in Web dataset either.")
-            return None
-        
-        # Use Web data instead
-        df_type_a = web_agg[web_agg["cve_id"].isin(paired_cves) & (web_agg["type"].str.lower() == "compose")]
-        df_type_b = web_agg[web_agg["cve_id"].isin(paired_cves) & (web_agg["type"].str.lower() == "bundle")]
-        type_a_name = "Compose"
-        type_b_name = "Bundle"
-    else:
-        df_type_a = services_agg[services_agg["cve_id"].isin(paired_cves) & (services_agg["type"].str.lower() == "package")]
-        df_type_b = services_agg[services_agg["cve_id"].isin(paired_cves) & (services_agg["type"].str.lower() == "source")]
-        type_a_name = "Package"
-        type_b_name = "Source"
-    
     results = []
     
-    # Calculate statistics for Median
-    pkg_impact_median = df_type_a["TotalImpact"].median()
-    src_impact_median = df_type_b["TotalImpact"].median()
-    delta_impact_median = src_impact_median - pkg_impact_median
+    # Process Services dataset (Package vs Source)
+    services_agg = agg[agg["dataset"].str.lower() == "services"].copy()
+    package_cves = set(services_agg[services_agg["type"].str.lower() == "package"]["cve_id"])
+    source_cves = set(services_agg[services_agg["type"].str.lower() == "source"]["cve_id"])
+    services_paired_cves = package_cves & source_cves
     
-    pkg_auto_median = df_type_a["TotalAutomation"].median()
-    src_auto_median = df_type_b["TotalAutomation"].median()
-    delta_auto_median = src_auto_median - pkg_auto_median
+    if services_paired_cves:
+        df_package = services_agg[services_agg["cve_id"].isin(services_paired_cves) & (services_agg["type"].str.lower() == "package")]
+        df_source = services_agg[services_agg["cve_id"].isin(services_paired_cves) & (services_agg["type"].str.lower() == "source")]
+        
+        # Change Impact
+        impact_mean = round(df_source["TotalImpact"].mean(), 1)
+        impact_median = round(df_source["TotalImpact"].median(), 1)
+        impact_delta = round(impact_mean - round(df_package["TotalImpact"].mean(), 1), 1)
+        
+        results.append({
+            "Metric": "Change Impact",
+            "Scenario 1": "Source",
+            "Scenario 2": "Package",
+            "Mean": impact_mean,
+            "Median": impact_median,
+            "Delta (Mean/Median)": impact_delta,
+        })
+        
+        # Automatic Challenge
+        auto_mean = round(df_source["TotalAutomation"].mean(), 1)
+        auto_median = round(df_source["TotalAutomation"].median(), 1)
+        auto_delta = round(auto_mean - round(df_package["TotalAutomation"].mean(), 1), 1)
+        
+        results.append({
+            "Metric": "Automatic Challenge",
+            "Scenario 1": "Source",
+            "Scenario 2": "Package",
+            "Mean": auto_mean,
+            "Median": auto_median,
+            "Delta (Mean/Median)": auto_delta,
+        })
     
-    results.append({
-        "Metric": "Median",
-        f"{type_a_name} (Impact)": round(pkg_impact_median, 1),
-        f"{type_b_name} (Impact)": round(src_impact_median, 1),
-        "Δ Change Impact": round(delta_impact_median, 1),
-        f"{type_a_name} (Automation)": round(pkg_auto_median, 1),
-        f"{type_b_name} (Automation)": round(src_auto_median, 1),
-        "Δ Automation Challenge": round(delta_auto_median, 1),
-    })
+    # Process Web dataset (Bundle vs Compose)
+    web_agg = agg[agg["dataset"].str.lower() == "web"].copy()
+    compose_cves = set(web_agg[web_agg["type"].str.lower() == "compose"]["cve_id"])
+    bundle_cves = set(web_agg[web_agg["type"].str.lower() == "bundle"]["cve_id"])
+    web_paired_cves = compose_cves & bundle_cves
     
-    # Calculate statistics for Mean
-    pkg_impact_mean = df_type_a["TotalImpact"].mean()
-    src_impact_mean = df_type_b["TotalImpact"].mean()
-    delta_impact_mean = src_impact_mean - pkg_impact_mean
+    if web_paired_cves:
+        df_compose = web_agg[web_agg["cve_id"].isin(web_paired_cves) & (web_agg["type"].str.lower() == "compose")]
+        df_bundle = web_agg[web_agg["cve_id"].isin(web_paired_cves) & (web_agg["type"].str.lower() == "bundle")]
+        
+        # Change Impact
+        impact_mean = round(df_bundle["TotalImpact"].mean(), 1)
+        impact_median = round(df_bundle["TotalImpact"].median(), 1)
+        impact_delta = round(impact_mean - round(df_compose["TotalImpact"].mean(), 1), 1)
+        
+        results.append({
+            "Metric": "Change Impact",
+            "Scenario 1": "Bundle",
+            "Scenario 2": "Compose",
+            "Mean": impact_mean,
+            "Median": impact_median,
+            "Delta (Mean/Median)": impact_delta,
+        })
+        
+        # Automatic Challenge
+        auto_mean = round(df_bundle["TotalAutomation"].mean(), 1)
+        auto_median = round(df_bundle["TotalAutomation"].median(), 1)
+        auto_delta = round(auto_mean - round(df_compose["TotalAutomation"].mean(), 1), 1)
+        
+        results.append({
+            "Metric": "Automatic Challenge",
+            "Scenario 1": "Bundle",
+            "Scenario 2": "Compose",
+            "Mean": auto_mean,
+            "Median": auto_median,
+            "Delta (Mean/Median)": auto_delta,
+        })
     
-    pkg_auto_mean = df_type_a["TotalAutomation"].mean()
-    src_auto_mean = df_type_b["TotalAutomation"].mean()
-    delta_auto_mean = src_auto_mean - pkg_auto_mean
-    
-    results.append({
-        "Metric": "Mean",
-        f"{type_a_name} (Impact)": round(pkg_impact_mean, 1),
-        f"{type_b_name} (Impact)": round(src_impact_mean, 1),
-        "Δ Change Impact": round(delta_impact_mean, 1),
-        f"{type_a_name} (Automation)": round(pkg_auto_mean, 1),
-        f"{type_b_name} (Automation)": round(src_auto_mean, 1),
-        "Δ Automation Challenge": round(delta_auto_mean, 1),
-    })
+    if not results:
+        warnings.append("No paired CVEs found for paired comparison summary.")
+        return None
     
     # Create DataFrame and save
     table_df = pd.DataFrame(results)

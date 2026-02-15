@@ -167,6 +167,141 @@ def generate_summary_statistics(df, col_mapping):
     return summary
 
 
+def generate_model_comparison_table(df, col_mapping, output_dir=None):
+    """
+    Generate LaTeX table comparing legacy (2024) vs modern (2026) models.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        DataFrame with Phase 1 results and WES scores
+    col_mapping : dict
+        Mapping of logical column names to actual column names
+    output_dir : Path or None
+        Directory to save the table (if None, only prints)
+    
+    Returns:
+    --------
+    str : LaTeX table code
+    """
+    # Define model groups
+    legacy_models = ['Bing', 'Gemini', 'Gpt3.5']
+    modern_models = ['Gemini3-Pro', 'Gpt5.2-Thinking', 'Gpt5.2-Thinking-Web']
+    
+    # Filter data by model groups
+    model_col = col_mapping.get('model', 'Model')
+    legacy_data = df[df[model_col].isin(legacy_models)]
+    modern_data = df[df[model_col].isin(modern_models)]
+    
+    # Calculate metrics for each group
+    def calculate_metrics(data, col_mapping):
+        build_col = col_mapping.get('build', 'Build')
+        run_col = col_mapping.get('run', 'Run')
+        
+        total = len(data)
+        
+        # Build failure rate
+        build_failures = (data[build_col] == 0).sum()
+        build_failure_rate = (build_failures / total) * 100 if total > 0 else 0
+        
+        # Runtime failure rate (build succeeded but run failed)
+        runtime_data = data[data[build_col] == 1]
+        total_builds_succeeded = len(runtime_data)
+        runtime_failures = (runtime_data[run_col] == 0).sum() if total_builds_succeeded > 0 else 0
+        runtime_failure_rate = (runtime_failures / total_builds_succeeded) * 100 if total_builds_succeeded > 0 else 0
+        
+        # Perfect execution rate (WES = 0)
+        perfect_count = (data['WES'] == 0).sum()
+        perfect_rate = (perfect_count / total) * 100 if total > 0 else 0
+        
+        # Mean WES
+        mean_wes = data['WES'].mean()
+        
+        return {
+            'build_failures': build_failures,
+            'total': total,
+            'build_failure_rate': build_failure_rate,
+            'runtime_failures': runtime_failures,
+            'total_builds_succeeded': total_builds_succeeded,
+            'runtime_failure_rate': runtime_failure_rate,
+            'perfect_count': perfect_count,
+            'perfect_rate': perfect_rate,
+            'mean_wes': mean_wes
+        }
+    
+    legacy_metrics = calculate_metrics(legacy_data, col_mapping)
+    modern_metrics = calculate_metrics(modern_data, col_mapping)
+    
+    # Generate LaTeX table
+    latex_lines = []
+    latex_lines.append(r"\begin{table}[t]")
+    latex_lines.append(r"\centering")
+    latex_lines.append(r"\caption{Comparison of execution outcomes between legacy (2024) and modern (2026) models in Phase 1.}")
+    latex_lines.append(r"\label{tab:phase1_generation_comparison}")
+    latex_lines.append(r"\begin{tabular*}{\tblwidth}{@{} LLL@{} }")
+    latex_lines.append(r"\toprule")
+    latex_lines.append(r"Outcome & Legacy (2024) & Modern (2026) \\")
+    latex_lines.append(r"\midrule")
+    
+    # Build failure rate with counts
+    legacy_bf = f"{legacy_metrics['build_failures']}/{legacy_metrics['total']} ({legacy_metrics['build_failure_rate']:.1f}\\%)"
+    modern_bf = f"{modern_metrics['build_failures']}/{modern_metrics['total']} ({modern_metrics['build_failure_rate']:.1f}\\%)"
+    latex_lines.append(f"Build failure rate & {legacy_bf} & {modern_bf} \\\\")
+    
+    # Runtime failure rate with counts
+    legacy_rf = f"{legacy_metrics['runtime_failures']}/{legacy_metrics['total_builds_succeeded']} ({legacy_metrics['runtime_failure_rate']:.1f}\\%)"
+    modern_rf = f"{modern_metrics['runtime_failures']}/{modern_metrics['total_builds_succeeded']} ({modern_metrics['runtime_failure_rate']:.1f}\\%)"
+    latex_lines.append(f"Runtime failure rate & {legacy_rf} & {modern_rf} \\\\")
+    
+    # Perfect execution rate with counts
+    legacy_pe = f"{legacy_metrics['perfect_count']}/{legacy_metrics['total']} ({legacy_metrics['perfect_rate']:.1f}\\%)"
+    modern_pe = f"{modern_metrics['perfect_count']}/{modern_metrics['total']} ({modern_metrics['perfect_rate']:.1f}\\%)"
+    latex_lines.append(f"Perfect execution rate & {legacy_pe} & {modern_pe} \\\\")
+    
+    # Mean WES
+    latex_lines.append(f"Mean WES & {legacy_metrics['mean_wes']:.2f} & {modern_metrics['mean_wes']:.2f} \\\\")
+    
+    latex_lines.append(r"\bottomrule")
+    latex_lines.append(r"\end{tabular*}")
+    latex_lines.append(r"\end{table}")
+    
+    latex_table = "\n".join(latex_lines)
+    
+    # Print to console
+    print("\n" + "="*60)
+    print("PHASE 1 MODEL COMPARISON TABLE (LaTeX)")
+    print("="*60)
+    print(latex_table)
+    
+    # Save to file if output_dir is specified
+    if output_dir is not None:
+        output_path = Path(output_dir) / "tab_phase1_model_comparison.tex"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, 'w') as f:
+            f.write(latex_table)
+        print(f"\nTable saved to: {output_path}")
+    
+    # Also print summary statistics
+    print("\n" + "="*60)
+    print("DETAILED METRICS")
+    print("="*60)
+    print(f"\nLegacy Models (2024): {', '.join(legacy_models)}")
+    print(f"  Samples: {len(legacy_data)}")
+    print(f"  Build failure rate: {legacy_metrics['build_failures']}/{legacy_metrics['total']} ({legacy_metrics['build_failure_rate']:.1f}%)")
+    print(f"  Runtime failure rate: {legacy_metrics['runtime_failures']}/{legacy_metrics['total_builds_succeeded']} ({legacy_metrics['runtime_failure_rate']:.1f}%)")
+    print(f"  Perfect execution rate: {legacy_metrics['perfect_count']}/{legacy_metrics['total']} ({legacy_metrics['perfect_rate']:.1f}%)")
+    print(f"  Mean WES: {legacy_metrics['mean_wes']:.2f}")
+    
+    print(f"\nModern Models (2026): {', '.join(modern_models)}")
+    print(f"  Samples: {len(modern_data)}")
+    print(f"  Build failure rate: {modern_metrics['build_failures']}/{modern_metrics['total']} ({modern_metrics['build_failure_rate']:.1f}%)")
+    print(f"  Runtime failure rate: {modern_metrics['runtime_failures']}/{modern_metrics['total_builds_succeeded']} ({modern_metrics['runtime_failure_rate']:.1f}%)")
+    print(f"  Perfect execution rate: {modern_metrics['perfect_count']}/{modern_metrics['total']} ({modern_metrics['perfect_rate']:.1f}%)")
+    print(f"  Mean WES: {modern_metrics['mean_wes']:.2f}")
+    
+    return latex_table
+
+
 def print_summary(summary):
     """Print formatted summary statistics."""
     print("\n" + "="*60)
@@ -205,17 +340,32 @@ def main():
     """Main execution function."""
     # Set up paths
     script_dir = Path(__file__).parent
-    results_file = script_dir / "Phase1_Results.xlsx"
+    results_file = script_dir / "Phase1_Results_with_WES.csv"
     
     # Check if file exists
     if not results_file.exists():
-        print(f"Error: Could not find {results_file}")
-        return
+        # Try Excel file
+        results_file = script_dir / "Phase1_Results.xlsx"
+        if not results_file.exists():
+            print(f"Error: Could not find Phase1_Results files")
+            return
+        # Analyze results with default alpha=3
+        df, col_mapping = analyze_phase1_results(results_file, alpha=3)
+    else:
+        # Read CSV directly
+        df = pd.read_csv(results_file)
+        # Identify column mapping
+        col_mapping = {}
+        for col in df.columns:
+            col_lower = col.lower()
+            if 'build' in col_lower:
+                col_mapping['build'] = col
+            elif 'run' in col_lower:
+                col_mapping['run'] = col
+            elif 'model' in col_lower:
+                col_mapping['model'] = col
     
     print(f"Reading Phase 1 results from: {results_file}")
-    
-    # Analyze results with default alpha=3
-    df, col_mapping = analyze_phase1_results(results_file, alpha=3)
     
     # Generate summary statistics
     summary = generate_summary_statistics(df, col_mapping)
@@ -223,16 +373,21 @@ def main():
     # Print summary
     print_summary(summary)
     
-    # Save results with WES
-    output_file = script_dir / "Phase1_Results_with_WES.xlsx"
-    df.to_excel(output_file, index=False)
-    print(f"\n{'='*60}")
-    print(f"Results saved to: {output_file}")
+    # Generate model comparison table
+    latex_output_dir = script_dir / "latex_tables"
+    generate_model_comparison_table(df, col_mapping, output_dir=latex_output_dir)
     
-    # Also save as CSV for easier inspection
-    csv_output = script_dir / "Phase1_Results_with_WES.csv"
-    df.to_csv(csv_output, index=False)
-    print(f"CSV version saved to: {csv_output}")
+    # Save results with WES (if not already CSV)
+    if results_file.suffix == '.xlsx':
+        output_file = script_dir / "Phase1_Results_with_WES.xlsx"
+        df.to_excel(output_file, index=False)
+        print(f"\n{'='*60}")
+        print(f"Results saved to: {output_file}")
+        
+        # Also save as CSV for easier inspection
+        csv_output = script_dir / "Phase1_Results_with_WES.csv"
+        df.to_csv(csv_output, index=False)
+        print(f"CSV version saved to: {csv_output}")
     
     return df, summary
 

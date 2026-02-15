@@ -51,5 +51,5 @@ CVE-2023-37474,Bing,0,0,Lack requirements,,2.0,8.0,Build failure
 CVE-2023-37474,Gemini,1,0,,"gunicorn"": executable file not found in $PATH: unknown",2.0,5.0,Runtime failure
 CVE-2023-37474,Gemini3-Pro,1,1,,,0.0,0.0,Perfect
 CVE-2023-37474,Gpt3.5,0,0,Fails to update apt lists,Complex to fix several deps,2.0,8.0,Build failure
-CVE-2023-37474,Gpt5.2-Thinking,1,1,,,,,Build failure
-CVE-2023-37474,Gpt5.2-Thinking-Web,1,1,,,,,Build failure
+CVE-2023-37474,Gpt5.2-Thinking,1,1,,,0.0,0.0,Perfect
+CVE-2023-37474,Gpt5.2-Thinking-Web,1,1,,,0.0,0.0,Perfect

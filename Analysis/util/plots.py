@@ -301,11 +301,8 @@ def plot_changeclass_impact_distribution(df, out_dir, also_vector, warnings, tit
     scenario_totals = counts.groupby("scenario")["count"].sum().reset_index(name="total")
     counts = counts.merge(scenario_totals, on="scenario")
     
-    # Calculate percentages
-    counts["percentage"] = (counts["count"] / counts["total"] * 100).round(1)
-    
-    # Pivot to get changeclass as columns
-    pivot = counts.pivot_table(index="scenario", columns="changeclass", values="percentage", fill_value=0)
+    # Pivot to get changeclass as columns (using counts instead of percentages)
+    pivot = counts.pivot_table(index="scenario", columns="changeclass", values="count", fill_value=0)
     
     # Define the order of scenarios and changeclass categories
     scenario_order = ["Services – Package", "Services – Source", "Web – Compose", "Web – Bundle"]
@@ -345,9 +342,36 @@ def plot_changeclass_impact_distribution(df, out_dir, also_vector, warnings, tit
             bottom = bottom + vals
     
     ax.set_xticks(x_positions)
-    ax.set_xticklabels(pivot.index, rotation=0)
-    ax.set_ylabel("Percentage (%)")
-    ax.set_ylim(0, 100)
+    
+    # Create simplified labels (just type: Source, Package, Compose, Bundle)
+    type_labels = []
+    type_map = {"Package": "Package", "Source": "Source", "Compose": "Compose", "Bundle": "Bundle"}
+    
+    for scenario in pivot.index:
+        # Split "Services – Package" into dataset and type
+        parts = scenario.split(" – ")
+        if len(parts) == 2:
+            dataset, type_ = parts
+            type_labels.append(type_map.get(type_, type_))
+        else:
+            type_labels.append(scenario)
+    
+    ax.set_xticklabels(type_labels, rotation=0)
+    
+    # Add dataset labels (Services, Web) centered above groups
+    if len(x_positions) >= 2:
+        # Services center (between Package and Source)
+        services_center = (x_positions[0] + x_positions[1]) / 2
+        ax.text(services_center, ax.get_ylim()[1] * 0.95, "Services", 
+                ha='center', va='top', style='italic', fontsize=11, weight='normal')
+    
+    if len(x_positions) >= 4:
+        # Web center (between Compose and Bundle)
+        web_center = (x_positions[2] + x_positions[3]) / 2
+        ax.text(web_center, ax.get_ylim()[1] * 0.95, "Web", 
+                ha='center', va='top', style='italic', fontsize=11, weight='normal')
+    
+    ax.set_ylabel("Count")
     # ax.set_title(title or TITLE_CHANGECLASS_IMPACT)
     ax.legend()
     ax.grid(axis='y', alpha=0.3, linestyle='--')
@@ -383,11 +407,8 @@ def plot_automation_challenge_distribution(df, out_dir, also_vector, warnings, t
     scenario_totals = counts.groupby("scenario")["count"].sum().reset_index(name="total")
     counts = counts.merge(scenario_totals, on="scenario")
     
-    # Calculate percentages
-    counts["percentage"] = (counts["count"] / counts["total"] * 100).round(1)
-    
-    # Pivot to get automationchallenge as columns
-    pivot = counts.pivot_table(index="scenario", columns="automationchallenge", values="percentage", fill_value=0)
+    # Pivot to get automationchallenge as columns (using counts instead of percentages)
+    pivot = counts.pivot_table(index="scenario", columns="automationchallenge", values="count", fill_value=0)
     
     # Define the order of scenarios and automationchallenge categories
     scenario_order = ["Services – Package", "Services – Source", "Web – Compose", "Web – Bundle"]
@@ -427,9 +448,36 @@ def plot_automation_challenge_distribution(df, out_dir, also_vector, warnings, t
             bottom = bottom + vals
     
     ax.set_xticks(x_positions)
-    ax.set_xticklabels(pivot.index, rotation=0)
-    ax.set_ylabel("Percentage (%)")
-    ax.set_ylim(0, 100)
+    
+    # Create simplified labels (just type: Source, Package, Compose, Bundle)
+    type_labels = []
+    type_map = {"Package": "Package", "Source": "Source", "Compose": "Compose", "Bundle": "Bundle"}
+    
+    for scenario in pivot.index:
+        # Split "Services – Package" into dataset and type
+        parts = scenario.split(" – ")
+        if len(parts) == 2:
+            dataset, type_ = parts
+            type_labels.append(type_map.get(type_, type_))
+        else:
+            type_labels.append(scenario)
+    
+    ax.set_xticklabels(type_labels, rotation=0)
+    
+    # Add dataset labels (Services, Web) centered above groups
+    if len(x_positions) >= 2:
+        # Services center (between Package and Source)
+        services_center = (x_positions[0] + x_positions[1]) / 2
+        ax.text(services_center, ax.get_ylim()[1] * 0.95, "Services", 
+                ha='center', va='top', style='italic', fontsize=11, weight='normal')
+    
+    if len(x_positions) >= 4:
+        # Web center (between Compose and Bundle)
+        web_center = (x_positions[2] + x_positions[3]) / 2
+        ax.text(web_center, ax.get_ylim()[1] * 0.95, "Web", 
+                ha='center', va='top', style='italic', fontsize=11, weight='normal')
+    
+    ax.set_ylabel("Count")
     # ax.set_title(title or TITLE_AUTOMATION_CHALLENGE)
     ax.legend()
     ax.grid(axis='y', alpha=0.3, linestyle='--')
@@ -647,10 +695,12 @@ def plot_error_category_by_stage(df, out_dir, also_vector, warnings, title=None)
             edgecolor="black",
             linewidth=0.5,
         )
+        ax.set_yticklabels(stage_data["categoryname"], fontweight='bold')
         
         # ax.set_title(f"", fontsize=12, fontweight="bold")
-        ax.set_xlabel("Number of Errors")
-        ax.set_ylabel("Build Error Category" if stage == "Build" else ("Run Error Category" if stage == "Run" else "Exploit Error Category"))
+        ax.set_xlabel("Number of Errors", fontsize=14, fontweight="bold")
+        # ax.set_ylabel("Build Error Category" if stage == "Build" else ("Run Error Category" if stage == "Run" else "Exploit Error Category"))
+        ax.set_ylabel("")
         ax.grid(axis="x", alpha=0.3, linestyle="--")
         
         # Add value labels on bars
@@ -658,7 +708,7 @@ def plot_error_category_by_stage(df, out_dir, also_vector, warnings, title=None)
             width = bar.get_width()
             ax.text(width + 0.1, bar.get_y() + bar.get_height() / 2,
                    f"{int(width)}",
-                   ha="left", va="center", fontsize=9, fontweight="bold")
+                   ha="left", va="center", fontsize=14, fontweight="bold")
         
         plt.tight_layout()
         

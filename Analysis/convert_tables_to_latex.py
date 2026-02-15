@@ -7,6 +7,31 @@ import pandas as pd
 from pathlib import Path
 
 
+def escape_latex(text: str) -> str:
+    """Escape special LaTeX characters in text."""
+    if not isinstance(text, str):
+        text = str(text)
+    
+    # Order matters! Backslash must be first
+    replacements = {
+        '\\': r'\textbackslash{}',
+        '&': r'\&',
+        '%': r'\%',
+        '$': r'\$',
+        '#': r'\#',
+        '_': r'\_',
+        '{': r'\{',
+        '}': r'\}',
+        '~': r'\textasciitilde{}',
+        '^': r'\textasciicircum{}',
+    }
+    
+    for char, escaped in replacements.items():
+        text = text.replace(char, escaped)
+    
+    return text
+
+
 def csv_to_latex(csv_path: Path, output_dir: Path):
     """Convert a single CSV file to LaTeX table format."""
     # Read CSV
@@ -24,24 +49,24 @@ def csv_to_latex(csv_path: Path, output_dir: Path):
     
     # Start building LaTeX
     latex_lines = []
-    latex_lines.append(f"\\begin{{table}}[width=.9\\linewidth,cols={num_cols},pos=h]")
-    latex_lines.append(f"\\caption{{{caption_text}}}\\label{{{label}}}")
+    # latex_lines.append(f"\\begin{{table}}[width=.9\\linewidth,cols={num_cols},pos=h]")
+    # latex_lines.append(f"\\caption{{{caption_text}}}\\label{{{label}}}")
     latex_lines.append(f"\\begin{{tabular*}}{{\\tblwidth}}{{@{{}} {col_spec}@{{}} }}")
     latex_lines.append("\\toprule")
     
     # Add header row
-    header = " & ".join(df.columns) + "\\\\"
+    header = " & ".join(escape_latex(col) for col in df.columns) + "\\\\"
     latex_lines.append(header)
     latex_lines.append("\\midrule")
     
     # Add data rows
     for _, row in df.iterrows():
-        row_str = " & ".join(str(val) for val in row.values) + " \\\\"
+        row_str = " & ".join(escape_latex(str(val)) for val in row.values) + " \\\\"
         latex_lines.append(row_str)
     
     latex_lines.append("\\bottomrule")
     latex_lines.append("\\end{tabular*}")
-    latex_lines.append("\\end{table}")
+    # latex_lines.append("\\end{table}")
     
     # Write to file
     output_path = output_dir / f"{csv_path.stem}.tex"

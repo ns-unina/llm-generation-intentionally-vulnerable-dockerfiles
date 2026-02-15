@@ -281,6 +281,11 @@ def main():
         action="store_true",
         help="Skip venv creation and dependency install",
     )
+    parser.add_argument(
+        "--tables",
+        action="store_true",
+        help="Generate only tables (skip figures)",
+    )
     args = parser.parse_args()
 
     if not args.skip_venv:
@@ -367,6 +372,18 @@ def main():
     csv_path = generate_success_rate_summary(df_summary, bool_cols_summary, out_dir, warnings)
     if csv_path:
         saved.append(csv_path)
+    
+    # Skip figures if --tables flag is set
+    if args.tables:
+        print("\nSkipping figures (--tables flag set)")
+        print("\nSaved files:")
+        for p in saved:
+            print(f"  - {p}")
+        if warnings:
+            print("\nWarnings:")
+            for w in warnings:
+                print(f"  - {w}")
+        return 0
     
     # Figure 1: Overall functional success rates - using summary data
     path = plot_overall_success(df_summary, bool_cols_summary, out_dir, args.vector, warnings)
