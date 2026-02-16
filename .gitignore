@@ -149,3 +149,8 @@ cw.py
 .codex-logs
 
 GEMINI.md
+
+.venv
+
+~$*.xlsx*
+~*$.xls*
