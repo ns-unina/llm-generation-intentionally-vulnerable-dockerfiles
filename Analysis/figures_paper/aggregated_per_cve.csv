@@ -35,5 +35,6 @@ CVE-2019-9193,Source,Services,12,0,2
 CVE-2020-7247,Package,Services,12,2,2
 CVE-2020-7247,Source,Services,8,2,2
 CVE-2023-2636,Bundle,Web,10,4,3
+CVE-2023-2636,Compose,Web,10,4,3
 CVE-2023-38633,Package,Services,6,2,1
 CVE-2023-38633,Source,Services,6,2,1

@@ -302,6 +302,92 @@ def generate_model_comparison_table(df, col_mapping, output_dir=None):
     return latex_table
 
 
+def generate_error_taxonomy_table(output_dir=None):
+    """
+    Generate LaTeX table for error taxonomy (Build, Run, Exploitability).
+    
+    Parameters:
+    -----------
+    output_dir : Path or None
+        Directory to save the table (if None, only prints)
+    
+    Returns:
+    --------
+    str : LaTeX table code
+    """
+    # Define error taxonomy
+    taxonomy = {
+        "Build errors": [
+            ("B1", "Invalid or obsolete base image"),
+            ("B2", "Missing or obsolete package version"),
+            ("B3", "Missing build dependencies or toolchain"),
+            ("B4", "External resource not found (URL, mirror)"),
+            ("B5", "Build-from-source or compilation failure"),
+            ("B6", "Repository configuration failure"),
+            ("B7", "Compress files without validity checks"),
+        ],
+        "Run errors": [
+            ("R1", "Service not started or container exits"),
+            ("R2", "Runtime misconfiguration (config files, env vars)"),
+            ("R3", "Missing runtime dependencies"),
+            ("R4", "Missing multi-service orchestration"),
+        ],
+        "Exploitability errors": [
+            ("E1", "Not actually vulnerable or patched version"),
+            ("E2", "Configuration prerequisites not met"),
+            ("E3", "Missing external service or application"),
+            ("E4", "Endpoint unavailable or connection refused"),
+            ("E5", "Exploit script mismatch or assumption violation"),
+            ("E6", "Contextual prerequisites not met"),
+        ]
+    }
+    
+    # Generate LaTeX table
+    latex_lines = []
+    latex_lines.append(r"\begin{table}[t]")
+    latex_lines.append(r"\centering")
+    latex_lines.append(r"\caption{Build, run, and exploitability error taxonomy (a posteriori).}")
+    latex_lines.append(r"\label{tab:taxonomy_errors}")
+    latex_lines.append(r"\begin{tabular*}{\tblwidth}{@{}LL@{}}")
+    latex_lines.append(r"\toprule")
+    latex_lines.append(r"Category & Description \\")
+    latex_lines.append(r"\midrule")
+    
+    for category_idx, (category, items) in enumerate(taxonomy.items()):
+        # Add category header
+        latex_lines.append(rf"\multicolumn{{2}}{{c}}{{\textbf{{{category}}}}} \\")
+        
+        # Add items for this category
+        for code, description in items:
+            latex_lines.append(f"{code} & {description} \\\\")
+        
+        # Add midrule between categories (except after the last one)
+        if category_idx < len(taxonomy) - 1:
+            latex_lines.append(r"\midrule")
+    
+    latex_lines.append(r"\bottomrule")
+    latex_lines.append(r"\end{tabular*}")
+    latex_lines.append(r"\end{table}")
+    
+    latex_table = "\n".join(latex_lines)
+    
+    # Print to console
+    print("\n" + "="*60)
+    print("ERROR TAXONOMY TABLE (LaTeX)")
+    print("="*60)
+    print(latex_table)
+    
+    # Save to file if output_dir is specified
+    if output_dir is not None:
+        output_path = Path(output_dir) / "tab_taxonomy_errors.tex"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, 'w') as f:
+            f.write(latex_table)
+        print(f"\nTable saved to: {output_path}")
+    
+    return latex_table
+
+
 def print_summary(summary):
     """Print formatted summary statistics."""
     print("\n" + "="*60)
@@ -376,6 +462,9 @@ def main():
     # Generate model comparison table
     latex_output_dir = script_dir / "latex_tables"
     generate_model_comparison_table(df, col_mapping, output_dir=latex_output_dir)
+    
+    # Generate error taxonomy table
+    generate_error_taxonomy_table(output_dir=latex_output_dir)
     
     # Save results with WES (if not already CSV)
     if results_file.suffix == '.xlsx':

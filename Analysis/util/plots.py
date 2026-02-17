@@ -633,26 +633,88 @@ def plot_boxplots(agg, out_dir, also_vector, warnings, title_impact=None, title_
 
 
 def plot_error_category_by_stage(df, out_dir, also_vector, warnings, title=None):
-    """Figure 7: Error category frequency by stage (Build, Run, Exploit) - 3 separate figures."""
+    """Figure 7: Error category frequency by stage (Build, Run, Exploit) - 3 separate figures with taxonomy codes."""
     if "stage" not in df.columns or "categoryname" not in df.columns:
         if warnings:
             warnings.append("Missing stage or categoryname column; skipping error category chart.")
         return None
+    
+    # Define error taxonomy mapping (matching actual data format in Excel files)
+    taxonomy_mapping = {
+        # Build errors (using "/" as in the data)
+        "Invalid/obsolete base image": "B1",
+        "Missing/obsolete package version": "B2",
+        "Missing build dependencies / toolchain": "B3",
+        "External resource not found (URL, mirror)": "B4",
+        "Build-from-source / compilation failure": "B5",
+        "Repository configuration failure": "B6",
+        "Compress files without validity checks.": "B7",  # Note: has period at end
+        # Run errors
+        "Service not started / container exits": "R1",
+        "Runtime misconfiguration (config files, env vars)": "R2",
+        "Runtime misconfiguration": "R2",  # Alternative format without parentheses
+        "Missing runtime dependencies": "R3",
+        "Missing multi-service orchestration": "R4",  # Changed from R5 to R4 to match taxonomy
+        # Exploitability errors
+        "Not actually vulnerable / patched version": "E1",
+        "Configuration prerequisites not met": "E2",
+        "Exploit requires missing external service or application": "E3",
+        "Endpoint unavailable / connection refused": "E4",
+        "Exploit script mismatch or assumption violation": "E5",
+        "Contextual prerequisites not met": "E6",
+    }
     
     # Normalize stage values
     df = df.copy()
     df["stage"] = df["stage"].astype(str).str.strip().str.lower()
     df["categoryname"] = df["categoryname"].astype(str).str.strip()
     
-    # Map various stage values to canonical stages
-    stage_map = {
-        "build": "Build",
-        "run": "Run",
-        "run (impacts exploit)": "Run",
-        "runtime": "Run",
-        "exploit": "Exploit",
+    # Map category names to taxonomy codes FIRST
+    df["category_code"] = df["categoryname"].map(taxonomy_mapping)
+    
+    # Filter rows with valid category codes
+    df = df[df["category_code"].notna()]
+    
+    if df.empty:
+        if warnings:
+            warnings.append("No valid categories found in taxonomy mapping.")
+        return None
+    
+    # Create reverse mapping (code -> canonical name) to normalize category names
+    code_to_canonical_name = {
+        "B1": "Invalid/obsolete base image",
+        "B2": "Missing/obsolete package version",
+        "B3": "Missing build dependencies / toolchain",
+        "B4": "External resource not found (URL, mirror)",
+        "B5": "Build-from-source / compilation failure",
+        "B6": "Repository configuration failure",
+        "B7": "Compress files without validity checks",
+        "R1": "Service not started / container exits",
+        "R2": "Runtime misconfiguration (config files, env vars)",
+        "R3": "Missing runtime dependencies",
+        "R4": "Missing multi-service orchestration",
+        "E1": "Not actually vulnerable / patched version",
+        "E2": "Configuration prerequisites not met",
+        "E3": "Exploit requires missing external service or application",
+        "E4": "Endpoint unavailable / connection refused",
+        "E5": "Exploit script mismatch or assumption violation",
+        "E6": "Contextual prerequisites not met",
     }
-    df["stage_norm"] = df["stage"].map(stage_map)
+    
+    # Normalize category names based on their code
+    df["categoryname_normalized"] = df["category_code"].map(code_to_canonical_name)
+    
+    # Determine the correct stage based on category code prefix
+    def get_stage_from_code(code):
+        if code.startswith('B'):
+            return 'Build'
+        elif code.startswith('R'):
+            return 'Run'
+        elif code.startswith('E'):
+            return 'Exploit'
+        return None
+    
+    df["stage_norm"] = df["category_code"].apply(get_stage_from_code)
     df = df[df["stage_norm"].notna()]
     
     if df.empty:
@@ -660,8 +722,8 @@ def plot_error_category_by_stage(df, out_dir, also_vector, warnings, title=None)
             warnings.append("No valid stage values found.")
         return None
     
-    # Count error categories per stage
-    counts = df.groupby(["stage_norm", "categoryname"]).size().reset_index(name="count")
+    # Count error categories per stage using normalized names
+    counts = df.groupby(["stage_norm", "category_code", "categoryname_normalized"]).size().reset_index(name="count")
     
     # Create 3 separate figures (one for each stage)
     stage_order = ["Build", "Run", "Exploit"]
@@ -682,20 +744,25 @@ def plot_error_category_by_stage(df, out_dir, also_vector, warnings, title=None)
         # Sort by count descending
         stage_data = stage_data.sort_values("count", ascending=True)  # ascending for horizontal bars
         
+        # Create labels combining code and description using normalized names
+        stage_data["label"] = stage_data.apply(
+            lambda row: f"{row['category_code']}: {row['categoryname_normalized']}", axis=1
+        )
+        
         # Create individual figure
-        fig, ax = plt.subplots(figsize=(10, max(6, len(stage_data) * 0.4)))
+        fig, ax = plt.subplots(figsize=(12, max(6, len(stage_data) * 0.5)))
         
         # Create horizontal bar chart
         selected_color = GREEN_COLOR if stage == "Build" else ORANGE_COLOR if stage == "Run" else RED_COLOR
                   
         bars = ax.barh(
-            stage_data["categoryname"],
+            stage_data["label"],
             stage_data["count"],
             color=[selected_color for i in range(len(stage_data))],
             edgecolor="black",
             linewidth=0.5,
         )
-        ax.set_yticklabels(stage_data["categoryname"], fontweight='bold')
+        ax.set_yticklabels(stage_data["label"], fontweight='bold', fontsize=11)
         
         # ax.set_title(f"", fontsize=12, fontweight="bold")
         ax.set_xlabel("Number of Errors", fontsize=14, fontweight="bold")
@@ -708,7 +775,7 @@ def plot_error_category_by_stage(df, out_dir, also_vector, warnings, title=None)
             width = bar.get_width()
             ax.text(width + 0.1, bar.get_y() + bar.get_height() / 2,
                    f"{int(width)}",
-                   ha="left", va="center", fontsize=14, fontweight="bold")
+                   ha="left", va="center", fontsize=12, fontweight="bold")
         
         plt.tight_layout()
         
@@ -718,6 +785,7 @@ def plot_error_category_by_stage(df, out_dir, also_vector, warnings, title=None)
         plt.close(fig)
     
     return chart_paths
+
 
 
 def plot_paired_delta_hist(agg, out_path, also_vector, warnings, title=None):
